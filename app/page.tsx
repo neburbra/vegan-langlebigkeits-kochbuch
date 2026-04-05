@@ -25,11 +25,7 @@ export default async function Home() {
         .replace(/\[(.+)\]\(.+\)/g, '$1')
         .trim();
       const id = `section-${index}`;
-      
-      // Nur Rezepte (Level 2 mit Nummer am Anfang) ins Inhaltsverzeichnis
-      if (level === 2 && /^\d+\./.test(title)) {
-        sections.push({ id, title, level });
-      }
+      sections.push({ id, title, level });
     }
   });
 

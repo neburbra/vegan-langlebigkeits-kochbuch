@@ -34,9 +34,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
   const [filteredContent, setFilteredContent] = useState(content);
   const [showToc, setShowToc] = useState(true);
   const [filteredSections, setFilteredSections] = useState(sections);
-  const [selectedCategory, setSelectedCategory] = useState<string>('alle');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [scoreFilter, setScoreFilter] = useState<string>('alle');
-  const [dietFilter, setDietFilter] = useState<string>('alle');
+  const [dietFilters, setDietFilters] = useState<string[]>([]);
+  const [showOnlyRecipes, setShowOnlyRecipes] = useState(true);
+
+  const toggleCategory = (cat: string) => {
+    if (cat === 'alle') {
+      setSelectedCategories([]);
+    } else {
+      setSelectedCategories(prev => 
+        prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+      );
+    }
+  };
+
+  const toggleDietFilter = (filter: string) => {
+    setDietFilters(prev => 
+      prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]
+    );
+  };
 
   // Rezepte in Sections aufteilen und Metadaten extrahieren
   const recipes = useMemo(() => {
@@ -105,10 +122,17 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
   // Kategorien für Filter
   const categories = useMemo(() => {
     const cats = new Set(recipes.map(r => r.category).filter(Boolean));
-    return ['alle', ...Array.from(cats)];
+    return Array.from(cats);
   }, [recipes]);
 
   useEffect(() => {
+    // Wenn "Nur Rezepte" deaktiviert ist, zeige kompletten Content
+    if (!showOnlyRecipes) {
+      setFilteredContent(content);
+      setFilteredSections(sections);
+      return;
+    }
+
     let matchingRecipes = recipes;
     
     // Textsuche
@@ -120,9 +144,9 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
       );
     }
     
-    // Kategorie-Filter
-    if (selectedCategory !== 'alle') {
-      matchingRecipes = matchingRecipes.filter(r => r.category === selectedCategory);
+    // Multiple Kategorie-Filter
+    if (selectedCategories.length > 0) {
+      matchingRecipes = matchingRecipes.filter(r => selectedCategories.includes(r.category));
     }
     
     // Score-Filter
@@ -132,12 +156,14 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
       matchingRecipes = matchingRecipes.filter(r => (r.score || 0) >= 80);
     }
     
-    // Diät-Filter
-    if (dietFilter === 'lowcarb') {
+    // Multiple Diät-Filter (UND-Verknüpfung)
+    if (dietFilters.includes('lowcarb')) {
       matchingRecipes = matchingRecipes.filter(r => r.isLowCarb);
-    } else if (dietFilter === 'highprotein') {
+    }
+    if (dietFilters.includes('highprotein')) {
       matchingRecipes = matchingRecipes.filter(r => r.isHighProtein);
-    } else if (dietFilter === 'lowcal') {
+    }
+    if (dietFilters.includes('lowcal')) {
       matchingRecipes = matchingRecipes.filter(r => (r.calories || 0) <= 400);
     }
     
@@ -149,7 +175,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
     const matchingTitles = new Set(matchingRecipes.map(r => r.title));
     const filteredSecs = sections.filter(s => s.level === 2 && matchingTitles.has(s.title));
     setFilteredSections(filteredSecs);
-  }, [searchTerm, selectedCategory, scoreFilter, dietFilter, recipes, sections]);
+  }, [searchTerm, selectedCategories, scoreFilter, dietFilters, showOnlyRecipes, recipes, sections, content]);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -219,101 +245,152 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
     <main className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <header className="text-center mb-6 bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl shadow-xl p-4 sm:p-8 text-white">
+        <header className="text-center mb-6 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-2xl shadow-2xl p-4 sm:p-8 text-white">
           <h1 className="text-3xl sm:text-5xl font-bold mb-2 sm:mb-3">
             🌱 Veganes Kochbuch
           </h1>
           <p className="text-base sm:text-xl mb-4 sm:mb-6 text-green-50">
-            108 gesunde Rezepte
+            108 gesunde Rezepte + Wissenschaft
           </p>
           
-          {/* Suchfeld */}
-          <div className="max-w-3xl mx-auto mb-4 sm:mb-6">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="🔍 Rezepte suchen..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg text-gray-800 border-2 border-white rounded-xl focus:outline-none focus:ring-4 focus:ring-green-300 shadow-lg"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-600 text-xl sm:text-2xl font-bold"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+          {/* View Toggle */}
+          <div className="flex justify-center gap-2 mb-4">
+            <button
+              onClick={() => setShowOnlyRecipes(true)}
+              className={`px-4 sm:px-6 py-2 rounded-lg font-semibold transition shadow-md ${
+                showOnlyRecipes
+                  ? 'bg-white text-green-700'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              📖 Nur Rezepte
+            </button>
+            <button
+              onClick={() => setShowOnlyRecipes(false)}
+              className={`px-4 sm:px-6 py-2 rounded-lg font-semibold transition shadow-md ${
+                !showOnlyRecipes
+                  ? 'bg-white text-green-700'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              📚 Alles anzeigen
+            </button>
           </div>
 
-          {/* Filter-Chips - Mobile optimiert */}
-          <div className="max-w-4xl mx-auto space-y-2 sm:space-y-3">
-            {/* Kategorie-Filter - Horizontal scrollbar auf Mobile */}
-            <div className="overflow-x-auto pb-2">
-              <div className="flex gap-2 min-w-max px-2">
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all shadow-md whitespace-nowrap ${
-                      selectedCategory === cat
-                        ? 'bg-white text-green-700 scale-105'
-                        : 'bg-green-500 bg-opacity-30 text-white hover:bg-white hover:text-green-700'
-                    }`}
-                  >
-                    {cat === 'alle' ? '🍽️ Alle' : cat}
-                  </button>
-                ))}
+          {showOnlyRecipes && (
+            <>
+              {/* Suchfeld */}
+              <div className="max-w-3xl mx-auto mb-4 sm:mb-6">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="🔍 Rezepte suchen..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg text-gray-800 border-2 border-white rounded-xl focus:outline-none focus:ring-4 focus:ring-green-300 shadow-lg"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-600 text-xl sm:text-2xl font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Score & Diät-Filter - Mobile Stack */}
-            <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-2">
-              <select
-                value={scoreFilter}
-                onChange={(e) => setScoreFilter(e.target.value)}
-                className="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-green-700 bg-white shadow-md cursor-pointer hover:scale-105 transition"
-              >
-                <option value="alle">⭐ Alle Scores</option>
-                <option value="top">⭐⭐⭐⭐⭐ Top (≥90)</option>
-                <option value="gut">⭐⭐⭐⭐ Gut (≥80)</option>
-              </select>
+              {/* Filter-Sektion */}
+              <div className="max-w-5xl mx-auto space-y-3 sm:space-y-4">
+                {/* Kategorien - Multiple Selection */}
+                <div>
+                  <div className="text-xs sm:text-sm font-semibold mb-2 text-green-100">
+                    Kategorien (mehrere auswählbar):
+                  </div>
+                  <div className="overflow-x-auto pb-2">
+                    <div className="flex gap-2 min-w-max px-2">
+                      {selectedCategories.length > 0 && (
+                        <button
+                          onClick={() => setSelectedCategories([])}
+                          className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all shadow-md bg-white text-green-700 hover:scale-105 whitespace-nowrap"
+                        >
+                          🍽️ Alle
+                        </button>
+                      )}
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => toggleCategory(cat)}
+                          className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all shadow-md whitespace-nowrap ${
+                            selectedCategories.includes(cat)
+                              ? 'bg-white text-green-700 scale-105 ring-2 ring-yellow-400'
+                              : 'bg-green-500 bg-opacity-30 text-white hover:bg-white hover:text-green-700'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-              <select
-                value={dietFilter}
-                onChange={(e) => setDietFilter(e.target.value)}
-                className="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-green-700 bg-white shadow-md cursor-pointer hover:scale-105 transition"
-              >
-                <option value="alle">🥗 Alle Rezepte</option>
-                <option value="lowcarb">🥑 Low-Carb (≤30g)</option>
-                <option value="highprotein">💪 High-Protein (≥20g)</option>
-                <option value="lowcal">🔥 Low-Cal (≤400 kcal)</option>
-              </select>
+                {/* Score & Diät-Filter */}
+                <div className="flex flex-col sm:flex-row gap-2 items-center justify-center">
+                  {/* Score Filter */}
+                  <select
+                    value={scoreFilter}
+                    onChange={(e) => setScoreFilter(e.target.value)}
+                    className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-green-700 bg-white shadow-md cursor-pointer hover:scale-105 transition"
+                  >
+                    <option value="alle">⭐ Alle Scores</option>
+                    <option value="top">⭐⭐⭐⭐⭐ Top (≥90)</option>
+                    <option value="gut">⭐⭐⭐⭐ Gut (≥80)</option>
+                  </select>
 
-              {(selectedCategory !== 'alle' || scoreFilter !== 'alle' || dietFilter !== 'alle' || searchTerm) && (
-                <button
-                  onClick={() => {
-                    setSelectedCategory('alle');
-                    setScoreFilter('alle');
-                    setDietFilter('alle');
-                    setSearchTerm('');
-                  }}
-                  className="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-red-500 text-white shadow-md hover:bg-red-600 transition"
-                >
-                  ✕ Zurücksetzen
-                </button>
-              )}
-            </div>
-          </div>
+                  {/* Diät-Filter - Multiple Selection */}
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {['lowcarb', 'highprotein', 'lowcal'].map(filter => (
+                      <button
+                        key={filter}
+                        onClick={() => toggleDietFilter(filter)}
+                        className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold shadow-md transition hover:scale-105 ${
+                          dietFilters.includes(filter)
+                            ? 'bg-white text-green-700 ring-2 ring-yellow-400'
+                            : 'bg-white bg-opacity-80 text-green-700 hover:bg-white'
+                        }`}
+                      >
+                        {filter === 'lowcarb' && '🥑 Low-Carb'}
+                        {filter === 'highprotein' && '💪 High-Protein'}
+                        {filter === 'lowcal' && '🔥 Low-Cal'}
+                      </button>
+                    ))}
+                  </div>
 
-          {/* Ergebnis-Anzeige */}
-          <div className="mt-3 sm:mt-4 text-green-100 text-xs sm:text-sm">
-            {filteredSections.length} {filteredSections.length === 1 ? 'Rezept' : 'Rezepte'} gefunden
-          </div>
+                  {/* Reset Button */}
+                  {(selectedCategories.length > 0 || scoreFilter !== 'alle' || dietFilters.length > 0 || searchTerm) && (
+                    <button
+                      onClick={() => {
+                        setSelectedCategories([]);
+                        setScoreFilter('alle');
+                        setDietFilters([]);
+                        setSearchTerm('');
+                      }}
+                      className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-red-500 text-white shadow-md hover:bg-red-600 transition"
+                    >
+                      ✕ Filter zurücksetzen
+                    </button>
+                  )}
+                </div>
+              </div>
 
-          {/* Action Buttons - Mobile Stack */}
+              {/* Ergebnis-Anzeige */}
+              <div className="mt-3 sm:mt-4 text-green-100 text-xs sm:text-sm font-semibold">
+                📊 {filteredSections.length} {filteredSections.length === 1 ? 'Rezept' : 'Rezepte'} gefunden
+              </div>
+            </>
+          )}
+
+          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mt-4 sm:mt-6">
             <a 
               href="/Veganes_Langlebigkeits_Kochbuch_KOMPLETT.pdf" 
@@ -326,7 +403,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
               onClick={() => setShowToc(!showToc)}
               className="bg-green-700 bg-opacity-50 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition shadow-lg hover:bg-opacity-70"
             >
-              {showToc ? '📖 Liste ausblenden' : '📖 Rezept-Liste'}
+              {showToc ? '📖 Liste ausblenden' : '📖 Inhalt anzeigen'}
             </button>
           </div>
         </header>
@@ -337,66 +414,83 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
             <aside className="lg:col-span-1">
               <div className="lg:sticky lg:top-4 bg-white rounded-xl shadow-lg p-3 sm:p-5 max-h-[60vh] lg:max-h-[calc(100vh-2rem)] overflow-y-auto">
                 <h2 className="text-lg sm:text-xl font-bold text-green-800 mb-2 sm:mb-3 sticky top-0 bg-white pb-2 sm:pb-3 border-b-2 border-green-200">
-                  📑 Rezepte ({filteredSections.length})
+                  {showOnlyRecipes ? `📑 Rezepte (${filteredSections.length})` : '📚 Inhaltsverzeichnis'}
                 </h2>
                 <nav className="space-y-2">
-                  {filteredSections.map((section, idx) => {
-                    const recipe = recipes.find(r => r.title === section.title);
-                    return (
-                      <div key={idx} className="border border-gray-200 rounded-lg hover:border-green-300 hover:shadow-md transition group">
-                        <button
-                          onClick={() => scrollToSection(section.id)}
-                          className="block w-full text-left p-2 sm:p-3"
-                          title={section.title}
-                        >
-                          <div className="font-semibold text-green-700 text-xs sm:text-sm mb-1 group-hover:text-green-800">
-                            {section.title.replace(/^\d+\.\s*/, '')}
-                          </div>
+                  {showOnlyRecipes ? (
+                    // Rezept-Modus mit Share-Buttons
+                    filteredSections.map((section, idx) => {
+                      const recipe = recipes.find(r => r.title === section.title);
+                      return (
+                        <div key={idx} className="border border-gray-200 rounded-lg hover:border-green-300 hover:shadow-md transition group">
+                          <button
+                            onClick={() => scrollToSection(section.id)}
+                            className="block w-full text-left p-2 sm:p-3"
+                            title={section.title}
+                          >
+                            <div className="font-semibold text-green-700 text-xs sm:text-sm mb-1 group-hover:text-green-800">
+                              {section.title.replace(/^\d+\.\s*/, '')}
+                            </div>
+                            {recipe && (
+                              <div className="flex flex-wrap gap-1 sm:gap-2 text-xs">
+                                {recipe.score && (
+                                  <span className="bg-yellow-100 text-yellow-800 px-1.5 sm:px-2 py-0.5 rounded text-xs">
+                                    ⭐ {recipe.score}
+                                  </span>
+                                )}
+                                {recipe.calories && (
+                                  <span className="bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 rounded text-xs">
+                                    🔥 {recipe.calories}
+                                  </span>
+                                )}
+                                {recipe.protein && (
+                                  <span className="bg-green-100 text-green-800 px-1.5 sm:px-2 py-0.5 rounded text-xs">
+                                    💪 {recipe.protein}g
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </button>
                           {recipe && (
-                            <div className="flex flex-wrap gap-1 sm:gap-2 text-xs">
-                              {recipe.score && (
-                                <span className="bg-yellow-100 text-yellow-800 px-1.5 sm:px-2 py-0.5 rounded text-xs">
-                                  ⭐ {recipe.score}
-                                </span>
-                              )}
-                              {recipe.calories && (
-                                <span className="bg-blue-100 text-blue-800 px-1.5 sm:px-2 py-0.5 rounded text-xs">
-                                  🔥 {recipe.calories}
-                                </span>
-                              )}
-                              {recipe.protein && (
-                                <span className="bg-green-100 text-green-800 px-1.5 sm:px-2 py-0.5 rounded text-xs">
-                                  💪 {recipe.protein}g
-                                </span>
-                              )}
+                            <div className="border-t border-gray-200 px-2 sm:px-3 py-1.5 sm:py-2 flex gap-2">
+                              <button
+                                onClick={() => shareRecipe(recipe)}
+                                className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm py-1 sm:py-1.5 rounded font-semibold transition flex items-center justify-center gap-1"
+                              >
+                                <span>📱</span>
+                                <span className="hidden sm:inline">Teilen</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const url = `${window.location.origin}${window.location.pathname}#section-${recipe.startLine}`;
+                                  copyToClipboard(url);
+                                }}
+                                className="px-2 sm:px-3 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs sm:text-sm py-1 sm:py-1.5 rounded font-semibold transition"
+                                title="Link kopieren"
+                              >
+                                🔗
+                              </button>
                             </div>
                           )}
-                        </button>
-                        {/* WhatsApp Share Button */}
-                        {recipe && (
-                          <div className="border-t border-gray-200 px-2 sm:px-3 py-1.5 sm:py-2 flex gap-2">
-                            <button
-                              onClick={() => shareRecipe(recipe)}
-                              className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs sm:text-sm py-1 sm:py-1.5 rounded font-semibold transition flex items-center justify-center gap-1"
-                            >
-                              <span>📱</span>
-                              <span className="hidden sm:inline">Teilen</span>
-                            </button>
-                            <button
-                              onClick={() => {
-                                const url = `${window.location.origin}${window.location.pathname}#section-${recipe.startLine}`;
-                                copyToClipboard(url);
-                              }}
-                              className="px-2 sm:px-3 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs sm:text-sm py-1 sm:py-1.5 rounded font-semibold transition"
-                              title="Link kopieren"
-                            >
-                              🔗
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    // Vollständiges Inhaltsverzeichnis mit allen Ebenen
+                    filteredSections.map((section, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => scrollToSection(section.id)}
+                        className={`block w-full text-left py-2 px-3 rounded-lg transition hover:bg-green-50 ${
+                          section.level === 1 ? 'font-bold text-green-800 text-base mt-3 bg-green-50' :
+                          section.level === 2 ? 'font-semibold text-green-700 pl-4 text-sm border-l-4 border-green-300' :
+                          'text-gray-600 pl-6 text-xs'
+                        }`}
+                      >
+                        {section.title}
+                      </button>
+                    ))
+                  )}
                 </nav>
               </div>
             </aside>
