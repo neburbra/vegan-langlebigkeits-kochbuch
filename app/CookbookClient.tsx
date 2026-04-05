@@ -16,26 +16,40 @@ interface CookbookClientProps {
   sections: Section[];
 }
 
+interface ScoreBreakdown {
+  calorieScore?: number;
+  proteinScore?: number;
+  carbScore?: number;
+  fiberScore?: number;
+  nutrientScore?: number;
+  processScore?: number;
+  sustainScore?: number;
+  diabetesScore?: number;
+  total?: number;
+}
+
 interface Recipe {
   title: string;
   content: string;
   startLine: number;
   category: string;
   score?: number;
+  scoreBreakdown?: ScoreBreakdown;
   calories?: number;
   protein?: number;
   carbs?: number;
+  fiber?: number;
   isLowCarb?: boolean;
   isHighProtein?: boolean;
 }
 
 export default function CookbookClient({ content, sections }: CookbookClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredContent, setFilteredContent] = useState(content);
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
   const [showToc, setShowToc] = useState(true);
-  const [filteredSections, setFilteredSections] = useState<Section[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [scoreFilter, setScoreFilter] = useState<string>('alle');
+  const [minScore, setMinScore] = useState<number>(0);
+  const [maxScore, setMaxScore] = useState<number>(100);
   const [dietFilters, setDietFilters] = useState<string[]>([]);
   const [showOnlyRecipes, setShowOnlyRecipes] = useState(true);
   const [expandedRecipes, setExpandedRecipes] = useState<Set<number>>(new Set());
@@ -64,8 +78,9 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
     );
   };
 
-  // Rezepte extrahieren  
+  // Rezepte extrahieren mit Score-Breakdown
   const recipes = useMemo(() => {
+    console.log('Extrahiere Rezepte aus Content, Länge:', content.length);
     const lines = content.split('\n');
     const recipeList: Recipe[] = [];
     let currentRecipe: Recipe | null = null;
@@ -73,23 +88,20 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
     let isInRecipeSection = false;
     
     lines.forEach((line, index) => {
-      // Einfachstes Pattern: Zeile beginnt mit "# TEIL"
       if (line.startsWith('# TEIL')) {
         isInRecipeSection = true;
-        // Alles nach dem Doppelpunkt ist die Kategorie
         const parts = line.split(':');
         if (parts.length > 1) {
           currentCategory = parts[1].trim();
         } else {
           currentCategory = line.replace(/^#\s+TEIL\s+\d+\s*/, '').trim();
         }
-        console.log('Kategorie START:', currentCategory, '(von Zeile:', line.substring(0, 50), ')');
+        console.log('Kategorie gefunden:', currentCategory);
         return;
       }
       
-      // Rezepte: ## gefolgt von Nummer und Punkt
       if (isInRecipeSection && line.startsWith('## ')) {
-        const match = line.match(/^##\s+(\d+)\.\s+(.+)/); // Kein $ am Ende
+        const match = line.match(/^##\s+(\d+)\.\s+(.+)/);
         if (match) {
           if (currentRecipe) {
             recipeList.push(currentRecipe);
@@ -98,36 +110,68 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
             title: `${match[1]}. ${match[2].trim()}`,
             content: line + '\n',
             startLine: index,
-            category: currentCategory
+            category: currentCategory,
+            scoreBreakdown: {}
           };
         }
       } else if (currentRecipe) {
         currentRecipe.content += line + '\n';
         
-        const scoreMatch = line.match(/\*\*Gesamt:\s*(\d+)\/100\*\*/);
-        if (scoreMatch) currentRecipe.score = parseInt(scoreMatch[1]);
+        // Score-Breakdown extrahieren
+        const calorieMatch = line.match(/Kaloriendichte:\s*\*\*(\d+)\/15\*\*/);
+        if (calorieMatch) currentRecipe.scoreBreakdown!.calorieScore = parseInt(calorieMatch[1]);
+        
+        const proteinMatch = line.match(/Proteingehalt:\s*\*\*(\d+)\/15\*\*/);
+        if (proteinMatch) currentRecipe.scoreBreakdown!.proteinScore = parseInt(proteinMatch[1]);
+        
+        const carbMatch = line.match(/Kohlenhydrate & GI\/GL:\s*\*\*(\d+)\/15\*\*/);
+        if (carbMatch) currentRecipe.scoreBreakdown!.carbScore = parseInt(carbMatch[1]);
+        
+        const fiberMatch = line.match(/Ballaststoffe:\s*\*\*(\d+)\/10\*\*/);
+        if (fiberMatch) currentRecipe.scoreBreakdown!.fiberScore = parseInt(fiberMatch[1]);
+        
+        const nutrientMatch = line.match(/Nährstoffdichte:\s*\*\*(\d+)\/15\*\*/);
+        if (nutrientMatch) currentRecipe.scoreBreakdown!.nutrientScore = parseInt(nutrientMatch[1]);
+        
+        const processMatch = line.match(/Verarbeitungsgrad:\s*\*\*(\d+)\/10\*\*/);
+        if (processMatch) currentRecipe.scoreBreakdown!.processScore = parseInt(processMatch[1]);
+        
+        const sustainMatch = line.match(/Nachhaltigkeit:\s*\*\*(\d+)\/10\*\*/);
+        if (sustainMatch) currentRecipe.scoreBreakdown!.sustainScore = parseInt(sustainMatch[1]);
+        
+        const diabetesMatch = line.match(/Diabetesfreundlichkeit:\s*\*\*(\d+)\/10\*\*/);
+        if (diabetesMatch) currentRecipe.scoreBreakdown!.diabetesScore = parseInt(diabetesMatch[1]);
+        
+        const totalMatch = line.match(/\*\*Gesamt:\s*(\d+)\/100\*\*/);
+        if (totalMatch) {
+          currentRecipe.score = parseInt(totalMatch[1]);
+          currentRecipe.scoreBreakdown!.total = parseInt(totalMatch[1]);
+        }
         
         const calMatch = line.match(/Kalorien\s*\|\s*(\d+)\s*kcal/);
         if (calMatch) currentRecipe.calories = parseInt(calMatch[1]);
         
-        const proteinMatch = line.match(/Protein\s*\|\s*(\d+)g/);
-        if (proteinMatch) {
-          currentRecipe.protein = parseInt(proteinMatch[1]);
+        const proteinValueMatch = line.match(/Protein\s*\|\s*(\d+)g/);
+        if (proteinValueMatch) {
+          currentRecipe.protein = parseInt(proteinValueMatch[1]);
           currentRecipe.isHighProtein = currentRecipe.protein >= 20;
         }
         
-        const carbMatch = line.match(/Netto:\s*(\d+)g\)/);
-        if (carbMatch) {
-          currentRecipe.carbs = parseInt(carbMatch[1]);
+        const netCarbMatch = line.match(/Netto:\s*(\d+)g\)/);
+        if (netCarbMatch) {
+          currentRecipe.carbs = parseInt(netCarbMatch[1]);
           currentRecipe.isLowCarb = currentRecipe.carbs <= 30;
         }
+        
+        const fiberValueMatch = line.match(/Ballaststoffe\s*\|\s*(\d+)g/);
+        if (fiberValueMatch) currentRecipe.fiber = parseInt(fiberValueMatch[1]);
       }
     });
     
     if (currentRecipe) recipeList.push(currentRecipe);
-    console.log(`FINAL: ${recipeList.length} Rezepte`);
+    console.log('EXTRAHIERT:', recipeList.length, 'Rezepte');
     if (recipeList.length > 0) {
-      console.log('Erste 3 Rezepte:', recipeList.slice(0, 3).map(r => `${r.title} (${r.category})`));
+      console.log('Erste 3:', recipeList.slice(0, 3).map(r => r.title));
     }
     return recipeList;
   }, [content]);
@@ -137,70 +181,65 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
     return Array.from(cats).sort();
   }, [recipes]);
 
+  // Filtering Logic
   useEffect(() => {
     if (!showOnlyRecipes) {
-      setFilteredContent(content);
-      setFilteredSections(sections);
+      setFilteredRecipes([]);
       return;
     }
 
-    let matchingRecipes = recipes;
+    let matching = recipes;
+    console.log('Filtering:', { totalRecipes: recipes.length, searchTerm, selectedCategories, minScore, maxScore });
     
+    // Suchbegriff
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      matchingRecipes = matchingRecipes.filter(recipe => 
+      matching = matching.filter(recipe => 
         recipe.title.toLowerCase().includes(searchLower) ||
         recipe.content.toLowerCase().includes(searchLower)
       );
+      console.log('Nach Suche:', matching.length);
     }
     
+    // Kategorien
     if (selectedCategories.length > 0) {
-      matchingRecipes = matchingRecipes.filter(r => selectedCategories.includes(r.category));
+      matching = matching.filter(r => selectedCategories.includes(r.category));
+      console.log('Nach Kategorien:', matching.length);
     }
     
-    if (scoreFilter === 'top') {
-      matchingRecipes = matchingRecipes.filter(r => (r.score || 0) >= 90);
-    } else if (scoreFilter === 'gut') {
-      matchingRecipes = matchingRecipes.filter(r => (r.score || 0) >= 80);
-    }
+    // Score-Range
+    matching = matching.filter(r => {
+      const score = r.score || 0;
+      return score >= minScore && score <= maxScore;
+    });
+    console.log('Nach Score-Filter:', matching.length);
     
+    // Diet-Filter
     if (dietFilters.includes('lowcarb')) {
-      matchingRecipes = matchingRecipes.filter(r => r.isLowCarb);
+      matching = matching.filter(r => r.isLowCarb);
     }
     if (dietFilters.includes('highprotein')) {
-      matchingRecipes = matchingRecipes.filter(r => r.isHighProtein);
+      matching = matching.filter(r => r.isHighProtein);
     }
     if (dietFilters.includes('lowcal')) {
-      matchingRecipes = matchingRecipes.filter(r => (r.calories || 0) <= 400);
+      matching = matching.filter(r => (r.calories || 0) <= 400);
     }
     
-    const filtered = matchingRecipes.map(r => r.content).join('\n---\n\n');
-    setFilteredContent(filtered || '# Keine Ergebnisse\n\nVersuche andere Filter.');
-    
-    const matchingTitles = new Set(matchingRecipes.map(r => r.title));
-    console.log('Suche:', searchTerm, 'Matching Recipes:', matchingRecipes.length, 'Titel Sample:', Array.from(matchingTitles).slice(0, 3));
-    const recipeSections = sections.filter(s => {
-      const isRecipeSection = s.level === 2 && s.title.match(/^\d+\./);
-      const hasMatch = matchingTitles.has(s.title);
-      if (!hasMatch && isRecipeSection && matchingRecipes.length > 0 && sections.indexOf(s) < 5) {
-        console.log('Section nicht gefunden:', s.title, 'Vergleich mit:', Array.from(matchingTitles).slice(0, 2));
-      }
-      return isRecipeSection && hasMatch;
-    });
-    console.log('Filtered Sections:', recipeSections.length);
-    setFilteredSections(recipeSections);
-  }, [searchTerm, selectedCategories, scoreFilter, dietFilters, showOnlyRecipes, recipes, sections, content]);
+    console.log('FINAL gefilterte Rezepte:', matching.length);
+    setFilteredRecipes(matching);
+  }, [searchTerm, selectedCategories, minScore, maxScore, dietFilters, showOnlyRecipes, recipes]);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
+  const scrollToRecipe = (recipe: Recipe) => {
+    const recipeIdx = filteredRecipes.indexOf(recipe);
+    const element = document.getElementById(`recipe-${recipeIdx}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      window.history.pushState(null, '', `#${id}`);
+      window.history.pushState(null, '', `#recipe-${recipeIdx}`);
     }
   };
 
   const shareRecipe = async (recipe: Recipe) => {
-    const recipeUrl = `${window.location.origin}${window.location.pathname}#section-${recipe.startLine}`;
+    const recipeUrl = `${window.location.origin}${window.location.pathname}#recipe-${filteredRecipes.indexOf(recipe)}`;
     const shareText = `${recipe.title}\n\n${recipeUrl}`;
     
     if (navigator.share) {
@@ -222,24 +261,6 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
       alert(`Link: ${text}`);
     }
   };
-
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (hash) {
-      setTimeout(() => {
-        const element = document.getElementById(hash.substring(1));
-        if (element) element.scrollIntoView({ behavior: 'smooth' });
-      }, 500);
-    }
-  }, []);
-
-  const contentWithIds = filteredContent.split('\n').map((line, index) => {
-    const match = line.match(/^(#{1,3})\s+(.+)$/);
-    if (match) {
-      return `${match[1]} <span id="section-${index}">${match[2]}</span>`;
-    }
-    return line;
-  }).join('\n');
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
@@ -263,7 +284,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                   : 'bg-green-700 bg-opacity-50 text-white'
               }`}
             >
-              Rezepte
+              Rezepte ({recipes.length})
             </button>
             <button
               onClick={() => setShowOnlyRecipes(false)}
@@ -273,7 +294,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                   : 'bg-green-700 bg-opacity-50 text-white'
               }`}
             >
-              Komplett
+              Wissenschaft
             </button>
           </div>
 
@@ -290,84 +311,101 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                 />
               </div>
 
-              {/* Filter */}
-              <div className="max-w-4xl mx-auto space-y-3">
-                {/* Kategorien */}
-                <div className="bg-green-700 bg-opacity-30 rounded-xl p-4">
-                  <div className="text-sm font-medium mb-3 text-green-100">
-                    Kategorien {selectedCategories.length > 0 && `(${selectedCategories.length})`}
-                  </div>
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {selectedCategories.length > 0 && (
-                      <button
-                        onClick={() => setSelectedCategories([])}
-                        className="px-4 py-2 rounded-lg text-sm font-medium bg-white text-green-700 hover:bg-green-50"
-                      >
-                        Alle
-                      </button>
-                    )}
-                    {categories.map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => toggleCategory(cat)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                          selectedCategories.includes(cat)
-                            ? 'bg-white text-green-700 ring-2 ring-yellow-300'
-                            : 'bg-green-600 text-white hover:bg-green-500'
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
+              {/* Score-Range Filter */}
+              <div className="max-w-4xl mx-auto mb-4 bg-green-700 bg-opacity-30 rounded-xl p-4">
+                <div className="text-sm font-medium mb-3 text-green-100">
+                  Qualitäts-Score: {minScore} - {maxScore} Punkte
                 </div>
-
-                {/* Analytische Filter */}
-                <div className="flex flex-wrap gap-2 justify-center">
-                  <select
-                    value={scoreFilter}
-                    onChange={(e) => setScoreFilter(e.target.value)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium text-slate-800 bg-white"
+                <div className="flex gap-4 items-center justify-center">
+                  <div className="flex-1 max-w-md">
+                    <label className="text-xs text-green-100 mb-1 block">Min: {minScore}</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={minScore}
+                      onChange={(e) => setMinScore(parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex-1 max-w-md">
+                    <label className="text-xs text-green-100 mb-1 block">Max: {maxScore}</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={maxScore}
+                      onChange={(e) => setMaxScore(parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                  </div>
+                  <button
+                    onClick={() => { setMinScore(90); setMaxScore(100); }}
+                    className="px-3 py-2 bg-yellow-400 text-slate-800 rounded-lg text-xs font-medium hover:bg-yellow-300"
                   >
-                    <option value="alle">Alle Qualitäten</option>
-                    <option value="top">Exzellent (≥90)</option>
-                    <option value="gut">Sehr gut (≥80)</option>
-                  </select>
-
-                  {['lowcarb', 'highprotein', 'lowcal'].map(filter => (
-                    <button
-                      key={filter}
-                      onClick={() => toggleDietFilter(filter)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                        dietFilters.includes(filter)
-                          ? 'bg-yellow-400 text-slate-800 ring-2 ring-yellow-300'
-                          : 'bg-white text-slate-700 hover:bg-green-50'
-                      }`}
-                    >
-                      {filter === 'lowcarb' && 'Low-Carb'}
-                      {filter === 'highprotein' && 'High-Protein'}
-                      {filter === 'lowcal' && 'Low-Cal'}
-                    </button>
-                  ))}
-
-                  {(selectedCategories.length > 0 || scoreFilter !== 'alle' || dietFilters.length > 0 || searchTerm) && (
-                    <button
-                      onClick={() => {
-                        setSelectedCategories([]);
-                        setScoreFilter('alle');
-                        setDietFilters([]);
-                        setSearchTerm('');
-                      }}
-                      className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600"
-                    >
-                      Zurücksetzen
-                    </button>
-                  )}
+                    Top (90+)
+                  </button>
                 </div>
               </div>
 
-              <div className="mt-3 text-green-100 text-sm">
-                {filteredSections.length} Rezepte
+              {/* Kategorien */}
+              <div className="max-w-4xl mx-auto mb-4 bg-green-700 bg-opacity-30 rounded-xl p-4">
+                <div className="text-sm font-medium mb-3 text-green-100">
+                  Kategorien {selectedCategories.length > 0 && `(${selectedCategories.length})`}
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {categories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => toggleCategory(cat)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                        selectedCategories.includes(cat)
+                          ? 'bg-white text-green-700 ring-2 ring-yellow-300'
+                          : 'bg-green-600 text-white hover:bg-green-500'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Diet Filter */}
+              <div className="flex flex-wrap gap-2 justify-center mb-3">
+                {['lowcarb', 'highprotein', 'lowcal'].map(filter => (
+                  <button
+                    key={filter}
+                    onClick={() => toggleDietFilter(filter)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                      dietFilters.includes(filter)
+                        ? 'bg-yellow-400 text-slate-800 ring-2 ring-yellow-300'
+                        : 'bg-white text-slate-700 hover:bg-green-50'
+                    }`}
+                  >
+                    {filter === 'lowcarb' && 'Low-Carb'}
+                    {filter === 'highprotein' && 'High-Protein'}
+                    {filter === 'lowcal' && 'Low-Cal'}
+                  </button>
+                ))}
+
+                {(selectedCategories.length > 0 || minScore > 0 || maxScore < 100 || dietFilters.length > 0 || searchTerm) && (
+                  <button
+                    onClick={() => {
+                      setSelectedCategories([]);
+                      setMinScore(0);
+                      setMaxScore(100);
+                      setDietFilters([]);
+                      setSearchTerm('');
+                    }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600"
+                  >
+                    Zurücksetzen
+                  </button>
+                )}
+              </div>
+
+              <div className="text-green-100 text-sm">
+                {filteredRecipes.length} von {recipes.length} Rezepten
               </div>
             </>
           )}
@@ -384,178 +422,284 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
               onClick={() => setShowToc(!showToc)}
               className="px-6 py-2 rounded-lg text-sm font-semibold bg-green-700 bg-opacity-50 text-white hover:bg-green-700 shadow-lg"
             >
-              {showToc ? 'Liste ausblenden' : 'Liste anzeigen'}
+              {showToc ? 'Menü ausblenden' : 'Menü anzeigen'}
             </button>
           </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
-          {showToc && (
+          {showToc && showOnlyRecipes && (
             <aside className="lg:col-span-1">
               <div className="lg:sticky lg:top-32 bg-white rounded-xl shadow-lg p-4 max-h-[calc(100vh-10rem)] overflow-y-auto">
                 <h2 className="text-lg font-bold text-green-800 mb-3 pb-3 border-b-2 border-green-200 sticky top-0 bg-white">
-                  {showOnlyRecipes ? `Rezepte (${filteredSections.length})` : 'Inhaltsverzeichnis'}
+                  Rezepte ({filteredRecipes.length})
                 </h2>
                 <nav className="space-y-2">
-                  {showOnlyRecipes ? (
-                    filteredSections.map((section, idx) => {
-                      const recipe = recipes.find(r => r.title === section.title);
-                      const isExpanded = expandedRecipes.has(idx);
-                      return (
-                        <div key={idx} className="border border-green-200 rounded-lg hover:border-green-400 transition bg-white">
-                          <button
-                            onClick={() => scrollToSection(section.id)}
-                            className="block w-full text-left p-3 hover:bg-green-50 rounded-t-lg"
-                          >
-                            <div className="font-semibold text-green-700 text-sm">
-                              {section.title.replace(/^\d+\.\s*/, '')}
-                            </div>
-                            {recipe && !isExpanded && (
-                              <div className="flex flex-wrap gap-1.5 text-xs mt-2">
-                                {recipe.score && (
-                                  <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
-                                    {recipe.score}
-                                  </span>
-                                )}
-                                {recipe.calories && (
-                                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                                    {recipe.calories} kcal
-                                  </span>
-                                )}
-                                {recipe.protein && (
-                                  <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                                    {recipe.protein}g
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </button>
-                          
-                          {recipe && (
-                            <>
-                              <button
-                                onClick={() => toggleExpanded(idx)}
-                                className="w-full text-xs text-green-600 hover:text-green-700 hover:bg-green-50 py-2 border-t border-green-200 font-medium"
-                              >
-                                {isExpanded ? '▲ Weniger' : '▼ Details'}
-                              </button>
-                              
-                              {isExpanded && (
-                                <div className="px-3 py-3 bg-green-50 text-xs space-y-2 border-t border-green-200">
-                                  <table className="w-full">
-                                    <tbody>
-                                      {recipe.score && (
-                                        <tr className="border-b border-green-200">
-                                          <td className="py-1 text-slate-600">Score</td>
-                                          <td className="py-1 text-right font-semibold">{recipe.score}/100</td>
-                                        </tr>
-                                      )}
-                                      {recipe.calories && (
-                                        <tr className="border-b border-green-200">
-                                          <td className="py-1 text-slate-600">Kalorien</td>
-                                          <td className="py-1 text-right font-semibold">{recipe.calories} kcal</td>
-                                        </tr>
-                                      )}
-                                      {recipe.protein && (
-                                        <tr className="border-b border-green-200">
-                                          <td className="py-1 text-slate-600">Protein</td>
-                                          <td className="py-1 text-right font-semibold">{recipe.protein}g</td>
-                                        </tr>
-                                      )}
-                                      {recipe.carbs && (
-                                        <tr>
-                                          <td className="py-1 text-slate-600">Carbs (netto)</td>
-                                          <td className="py-1 text-right font-semibold">{recipe.carbs}g</td>
-                                        </tr>
-                                      )}
-                                    </tbody>
-                                  </table>
-                                  
-                                  {recipe.score && (
-                                    <div>
-                                      <div className="text-xs text-slate-600 mb-1">Qualität</div>
-                                      <div className="w-full bg-slate-200 rounded-full h-2">
-                                        <div 
-                                          className={`h-2 rounded-full transition-all ${
-                                            recipe.score >= 90 ? 'bg-green-500' : 
-                                            recipe.score >= 80 ? 'bg-yellow-500' : 'bg-orange-500'
-                                          }`}
-                                          style={{width: `${recipe.score}%`}}
-                                        />
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                                  {recipe.protein && (
-                                    <div>
-                                      <div className="text-xs text-slate-600 mb-1">Protein</div>
-                                      <div className="w-full bg-slate-200 rounded-full h-2">
-                                        <div 
-                                          className="bg-green-500 h-2 rounded-full transition-all"
-                                          style={{width: `${Math.min((recipe.protein / 50) * 100, 100)}%`}}
-                                        />
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                              
-                              <div className="border-t border-green-200 px-3 py-2 flex gap-2">
-                                <button
-                                  onClick={() => shareRecipe(recipe)}
-                                  className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs py-1.5 rounded font-medium"
-                                >
-                                  Teilen
-                                </button>
-                                <button
-                                  onClick={() => copyToClipboard(`${window.location.origin}${window.location.pathname}#section-${recipe.startLine}`)}
-                                  className="px-3 bg-green-100 hover:bg-green-200 text-green-700 text-xs py-1.5 rounded font-medium"
-                                >
-                                  Link
-                                </button>
-                              </div>
-                            </>
+                  {filteredRecipes.map((recipe, idx) => (
+                    <div key={idx} className="border border-green-200 rounded-lg hover:border-green-400 transition bg-white">
+                      <button
+                        onClick={() => scrollToRecipe(recipe)}
+                        className="block w-full text-left p-3 hover:bg-green-50 rounded-t-lg"
+                      >
+                        <div className="font-semibold text-green-700 text-sm">
+                          {recipe.title.replace(/^\d+\.\s*/, '')}
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 text-xs mt-2">
+                          {recipe.score && (
+                            <span className={`px-2 py-0.5 rounded font-medium ${
+                              recipe.score >= 90 ? 'bg-green-100 text-green-800' :
+                              recipe.score >= 80 ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-orange-100 text-orange-800'
+                            }`}>
+                              {recipe.score}
+                            </span>
+                          )}
+                          {recipe.calories && (
+                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                              {recipe.calories} kcal
+                            </span>
+                          )}
+                          {recipe.protein && (
+                            <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded">
+                              {recipe.protein}g
+                            </span>
                           )}
                         </div>
-                      );
-                    })
-                  ) : (
-                    filteredSections.map((section, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`block w-full text-left py-2 px-3 rounded-lg hover:bg-green-50 ${
-                          section.level === 1 ? 'font-bold text-green-800 text-base mt-3 bg-green-50' :
-                          section.level === 2 ? 'font-semibold text-green-700 pl-4 text-sm border-l-4 border-green-300' :
-                          'text-slate-600 pl-6 text-xs'
-                        }`}
-                      >
-                        {section.title}
                       </button>
-                    ))
-                  )}
+                    </div>
+                  ))}
                 </nav>
               </div>
             </aside>
           )}
 
           {/* Content */}
-          <article className={`${showToc ? 'lg:col-span-3' : 'lg:col-span-4'} bg-white rounded-xl shadow-lg p-6`}>
-            <div className="prose prose-slate max-w-none">
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw]}
-                components={{
-                  h1: ({node, ...props}) => <h1 className="text-3xl font-bold text-green-800 mt-6 mb-4" {...props} />,
-                  h2: ({node, ...props}) => <h2 className="text-2xl font-bold text-green-700 mt-5 mb-3 border-b-2 border-green-200 pb-2" {...props} />,
-                  h3: ({node, ...props}) => <h3 className="text-xl font-semibold text-green-600 mt-4 mb-2" {...props} />,
-                  table: ({node, ...props}) => <div className="overflow-x-auto"><table {...props} /></div>,
-                }}
-              >
-                {contentWithIds}
-              </ReactMarkdown>
-            </div>
+          <article className={`${showToc && showOnlyRecipes ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
+            {showOnlyRecipes ? (
+              <div className="space-y-6">
+                {filteredRecipes.length === 0 ? (
+                  <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+                    <h2 className="text-2xl font-bold text-slate-700 mb-2">Keine Rezepte gefunden</h2>
+                    <p className="text-slate-600">Versuche andere Filter oder Suchbegriffe.</p>
+                  </div>
+                ) : (
+                  filteredRecipes.map((recipe, idx) => (
+                    <div key={idx} id={`recipe-${idx}`} className="bg-white rounded-xl shadow-lg p-6">
+                      {/* Recipe Header mit Score-Visualisierung */}
+                      <div className="mb-4 pb-4 border-b-2 border-green-200">
+                        <h2 className="text-2xl font-bold text-green-800 mb-3">{recipe.title}</h2>
+                        
+                        {/* Score Breakdown Visualisierung */}
+                        {recipe.scoreBreakdown && recipe.score && (
+                          <div className="bg-green-50 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-lg font-bold text-green-700">
+                                Gesamt-Score: {recipe.score}/100
+                              </span>
+                              <span className={`px-4 py-2 rounded-lg font-bold text-white ${
+                                recipe.score >= 90 ? 'bg-green-500' :
+                                recipe.score >= 80 ? 'bg-yellow-500' :
+                                recipe.score >= 70 ? 'bg-orange-500' : 'bg-red-500'
+                              }`}>
+                                {recipe.score >= 90 ? 'Exzellent' :
+                                 recipe.score >= 80 ? 'Sehr gut' :
+                                 recipe.score >= 70 ? 'Gut' : 'OK'}
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                              {recipe.scoreBreakdown.calorieScore !== undefined && (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-slate-600">Kaloriendichte</span>
+                                    <span className="font-semibold">{recipe.scoreBreakdown.calorieScore}/15</span>
+                                  </div>
+                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-green-500 h-2 rounded-full"
+                                      style={{width: `${(recipe.scoreBreakdown.calorieScore / 15) * 100}%`}}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {recipe.scoreBreakdown.proteinScore !== undefined && (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-slate-600">Proteingehalt</span>
+                                    <span className="font-semibold">{recipe.scoreBreakdown.proteinScore}/15</span>
+                                  </div>
+                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-purple-500 h-2 rounded-full"
+                                      style={{width: `${(recipe.scoreBreakdown.proteinScore / 15) * 100}%`}}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {recipe.scoreBreakdown.carbScore !== undefined && (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-slate-600">Kohlenhydrate</span>
+                                    <span className="font-semibold">{recipe.scoreBreakdown.carbScore}/15</span>
+                                  </div>
+                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-blue-500 h-2 rounded-full"
+                                      style={{width: `${(recipe.scoreBreakdown.carbScore / 15) * 100}%`}}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {recipe.scoreBreakdown.fiberScore !== undefined && (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-slate-600">Ballaststoffe</span>
+                                    <span className="font-semibold">{recipe.scoreBreakdown.fiberScore}/10</span>
+                                  </div>
+                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-amber-500 h-2 rounded-full"
+                                      style={{width: `${(recipe.scoreBreakdown.fiberScore / 10) * 100}%`}}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {recipe.scoreBreakdown.nutrientScore !== undefined && (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-slate-600">Nährstoffdichte</span>
+                                    <span className="font-semibold">{recipe.scoreBreakdown.nutrientScore}/15</span>
+                                  </div>
+                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-teal-500 h-2 rounded-full"
+                                      style={{width: `${(recipe.scoreBreakdown.nutrientScore / 15) * 100}%`}}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {recipe.scoreBreakdown.processScore !== undefined && (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-slate-600">Verarbeitung</span>
+                                    <span className="font-semibold">{recipe.scoreBreakdown.processScore}/10</span>
+                                  </div>
+                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-indigo-500 h-2 rounded-full"
+                                      style={{width: `${(recipe.scoreBreakdown.processScore / 10) * 100}%`}}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {recipe.scoreBreakdown.sustainScore !== undefined && (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-slate-600">Nachhaltigkeit</span>
+                                    <span className="font-semibold">{recipe.scoreBreakdown.sustainScore}/10</span>
+                                  </div>
+                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-emerald-500 h-2 rounded-full"
+                                      style={{width: `${(recipe.scoreBreakdown.sustainScore / 10) * 100}%`}}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {recipe.scoreBreakdown.diabetesScore !== undefined && (
+                                <div>
+                                  <div className="flex justify-between mb-1">
+                                    <span className="text-slate-600">Diabetesfreundlich</span>
+                                    <span className="font-semibold">{recipe.scoreBreakdown.diabetesScore}/10</span>
+                                  </div>
+                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-rose-500 h-2 rounded-full"
+                                      style={{width: `${(recipe.scoreBreakdown.diabetesScore / 10) * 100}%`}}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Quick Stats */}
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {recipe.calories && (
+                            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                              {recipe.calories} kcal
+                            </span>
+                          )}
+                          {recipe.protein && (
+                            <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                              {recipe.protein}g Protein
+                            </span>
+                          )}
+                          {recipe.carbs !== undefined && (
+                            <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                              {recipe.carbs}g Netto-Carbs
+                            </span>
+                          )}
+                          {recipe.fiber && (
+                            <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
+                              {recipe.fiber}g Ballaststoffe
+                            </span>
+                          )}
+                        </div>
+                        
+                        <button
+                          onClick={() => shareRecipe(recipe)}
+                          className="mt-3 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium"
+                        >
+                          Teilen
+                        </button>
+                      </div>
+                      
+                      {/* Recipe Content */}
+                      <div className="prose prose-slate max-w-none">
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeRaw]}
+                          components={{
+                            h2: ({node, ...props}) => <h2 className="text-xl font-bold text-green-700 mt-4 mb-2" {...props} />,
+                            h3: ({node, ...props}) => <h3 className="text-lg font-semibold text-green-600 mt-3 mb-2" {...props} />,
+                            table: ({node, ...props}) => <div className="overflow-x-auto"><table {...props} /></div>,
+                          }}
+                        >
+                          {recipe.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <div className="prose prose-slate max-w-none">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                    components={{
+                      h1: ({node, ...props}) => <h1 className="text-3xl font-bold text-green-800 mt-6 mb-4" {...props} />,
+                      h2: ({node, ...props}) => <h2 className="text-2xl font-bold text-green-700 mt-5 mb-3 border-b-2 border-green-200 pb-2" {...props} />,
+                      h3: ({node, ...props}) => <h3 className="text-xl font-semibold text-green-600 mt-4 mb-2" {...props} />,
+                      table: ({node, ...props}) => <div className="overflow-x-auto"><table {...props} /></div>,
+                    }}
+                  >
+                    {content}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            )}
           </article>
         </div>
       </div>
