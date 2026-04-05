@@ -679,10 +679,10 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                               Score: {recipe.score}/100
                             </span>
                             <span className={`px-3 py-1 rounded-lg font-bold text-white text-sm ${
-                              recipe.score >= 90 ? 'bg-green-500' :
-                              recipe.score >= 80 ? 'bg-yellow-500' : 'bg-orange-500'
+                              (recipe.score || 0) >= 90 ? 'bg-green-500' :
+                              (recipe.score || 0) >= 80 ? 'bg-yellow-500' : 'bg-orange-500'
                             }`}>
-                              {recipe.score >= 90 ? 'Exzellent' : recipe.score >= 80 ? 'Sehr gut' : 'Gut'}
+                              {(recipe.score || 0) >= 90 ? 'Exzellent' : (recipe.score || 0) >= 80 ? 'Sehr gut' : 'Gut'}
                             </span>
                           </div>
                         </div>
