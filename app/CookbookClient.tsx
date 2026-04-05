@@ -38,6 +38,19 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
   const [scoreFilter, setScoreFilter] = useState<string>('alle');
   const [dietFilters, setDietFilters] = useState<string[]>([]);
   const [showOnlyRecipes, setShowOnlyRecipes] = useState(true);
+  const [expandedRecipes, setExpandedRecipes] = useState<Set<number>>(new Set());
+
+  const toggleExpanded = (idx: number) => {
+    setExpandedRecipes(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  };
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories(prev => 
@@ -218,14 +231,14 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
   }).join('\n');
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
-        <header className="text-center mb-6 bg-gradient-to-br from-slate-800 to-slate-700 rounded-2xl shadow-xl p-6 text-white">
+        <header className="text-center mb-6 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-2xl shadow-xl p-6 text-white sticky top-0 z-50">
           <h1 className="text-4xl font-bold mb-2">
             Veganes Langlebigkeits-Kochbuch
           </h1>
-          <p className="text-lg mb-5 text-slate-300">
+          <p className="text-lg mb-5 text-green-100">
             108 wissenschaftlich fundierte Rezepte
           </p>
           
@@ -235,8 +248,8 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
               onClick={() => setShowOnlyRecipes(true)}
               className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
                 showOnlyRecipes
-                  ? 'bg-white text-slate-800 shadow-lg'
-                  : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                  ? 'bg-white text-green-700 shadow-lg'
+                  : 'bg-green-700 bg-opacity-50 text-white hover:bg-green-700'
               }`}
             >
               Rezepte
@@ -245,8 +258,8 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
               onClick={() => setShowOnlyRecipes(false)}
               className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
                 !showOnlyRecipes
-                  ? 'bg-white text-slate-800 shadow-lg'
-                  : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                  ? 'bg-white text-green-700 shadow-lg'
+                  : 'bg-green-700 bg-opacity-50 text-white hover:bg-green-700'
               }`}
             >
               Komplett
@@ -262,22 +275,22 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                   placeholder="Rezepte durchsuchen..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-5 py-3 text-slate-800 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm"
+                  className="w-full px-5 py-3 text-slate-800 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300 shadow-sm"
                 />
               </div>
 
               {/* Filter */}
               <div className="max-w-4xl mx-auto space-y-4">
                 {/* Kategorien */}
-                <div className="bg-slate-700 bg-opacity-40 rounded-xl p-4">
-                  <div className="text-sm font-medium mb-3 text-slate-200">
+                <div className="bg-green-700 bg-opacity-40 rounded-xl p-4">
+                  <div className="text-sm font-medium mb-3 text-green-100">
                     Kategorien {selectedCategories.length > 0 && `(${selectedCategories.length})`}
                   </div>
                   <div className="flex flex-wrap gap-2 justify-center">
                     {selectedCategories.length > 0 && (
                       <button
                         onClick={() => setSelectedCategories([])}
-                        className="px-4 py-2 rounded-lg text-sm font-medium bg-white text-slate-800 hover:bg-slate-100 transition"
+                        className="px-4 py-2 rounded-lg text-sm font-medium bg-white text-green-700 hover:bg-green-50 transition"
                       >
                         Alle
                       </button>
@@ -288,8 +301,8 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                         onClick={() => toggleCategory(cat)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                           selectedCategories.includes(cat)
-                            ? 'bg-blue-500 text-white ring-2 ring-blue-300'
-                            : 'bg-slate-600 text-slate-200 hover:bg-slate-500'
+                            ? 'bg-white text-green-700 ring-2 ring-yellow-300'
+                            : 'bg-green-600 text-white hover:bg-green-500'
                         }`}
                       >
                         {cat}
@@ -303,7 +316,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                   <select
                     value={scoreFilter}
                     onChange={(e) => setScoreFilter(e.target.value)}
-                    className="px-4 py-2.5 rounded-lg text-sm font-medium text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-green-400"
                   >
                     <option value="alle">Alle Qualitäten</option>
                     <option value="top">Exzellent (≥90)</option>
@@ -316,8 +329,8 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                       onClick={() => toggleDietFilter(filter)}
                       className={`px-4 py-2.5 rounded-lg text-sm font-medium transition ${
                         dietFilters.includes(filter)
-                          ? 'bg-green-500 text-white ring-2 ring-green-300'
-                          : 'bg-white text-slate-700 hover:bg-slate-100'
+                          ? 'bg-yellow-400 text-slate-800 ring-2 ring-yellow-300'
+                          : 'bg-white text-slate-700 hover:bg-green-50'
                       }`}
                     >
                       {filter === 'lowcarb' && 'Low-Carb'}
@@ -343,7 +356,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
               </div>
 
               {/* Ergebnis */}
-              <div className="mt-4 text-slate-300 text-sm font-medium">
+              <div className="mt-4 text-green-100 text-sm font-medium">
                 {filteredSections.length} {filteredSections.length === 1 ? 'Rezept' : 'Rezepte'}
               </div>
             </>
@@ -353,14 +366,14 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
           <div className="flex flex-wrap justify-center gap-3 mt-5">
             <a 
               href="/Veganes_Langlebigkeits_Kochbuch_KOMPLETT.pdf" 
-              className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-blue-500 text-white hover:bg-blue-600 transition shadow-lg"
+              className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-white text-green-700 hover:bg-green-50 transition shadow-lg"
               download
             >
               PDF Download
             </a>
             <button
               onClick={() => setShowToc(!showToc)}
-              className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-slate-600 text-white hover:bg-slate-500 transition shadow-lg"
+              className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-green-700 bg-opacity-50 text-white hover:bg-green-700 transition shadow-lg"
             >
               {showToc ? 'Liste ausblenden' : 'Liste anzeigen'}
             </button>
@@ -368,30 +381,31 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
+          {/* Sidebar - Sticky */}
           {showToc && (
             <aside className="lg:col-span-1">
-              <div className="lg:sticky lg:top-4 bg-white rounded-xl shadow-lg p-4 max-h-[70vh] lg:max-h-[calc(100vh-2rem)] overflow-y-auto">
-                <h2 className="text-lg font-bold text-slate-800 mb-3 pb-3 border-b-2 border-slate-200">
+              <div className="lg:sticky lg:top-32 bg-white rounded-xl shadow-lg p-4 max-h-[70vh] lg:max-h-[calc(100vh-10rem)] overflow-y-auto">
+                <h2 className="text-lg font-bold text-green-800 mb-3 pb-3 border-b-2 border-green-200 sticky top-0 bg-white">
                   {showOnlyRecipes ? `Rezepte (${filteredSections.length})` : 'Inhaltsverzeichnis'}
                 </h2>
                 <nav className="space-y-2">
                   {showOnlyRecipes ? (
                     filteredSections.map((section, idx) => {
                       const recipe = recipes.find(r => r.title === section.title);
+                      const isExpanded = expandedRecipes.has(idx);
                       return (
-                        <div key={idx} className="border border-slate-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition">
+                        <div key={idx} className="border border-green-200 rounded-lg hover:border-green-400 hover:shadow-sm transition">
                           <button
                             onClick={() => scrollToSection(section.id)}
                             className="block w-full text-left p-3"
                           >
-                            <div className="font-semibold text-slate-700 text-sm mb-1.5">
+                            <div className="font-semibold text-green-700 text-sm mb-1.5">
                               {section.title.replace(/^\d+\.\s*/, '')}
                             </div>
-                            {recipe && (
+                            {recipe && !isExpanded && (
                               <div className="flex flex-wrap gap-1.5 text-xs">
                                 {recipe.score && (
-                                  <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-medium">
+                                  <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-medium">
                                     {recipe.score}
                                   </span>
                                 )}
@@ -409,23 +423,90 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                             )}
                           </button>
                           {recipe && (
-                            <div className="border-t border-slate-200 px-3 py-2 flex gap-2">
+                            <>
                               <button
-                                onClick={() => shareRecipe(recipe)}
-                                className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs py-1.5 rounded font-medium transition"
-                              >
-                                Teilen
-                              </button>
-                              <button
-                                onClick={() => {
-                                  const url = `${window.location.origin}${window.location.pathname}#section-${recipe.startLine}`;
-                                  copyToClipboard(url);
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleExpanded(idx);
                                 }}
-                                className="px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs py-1.5 rounded font-medium transition"
+                                className="w-full text-xs text-green-600 hover:text-green-700 py-1 border-t border-green-200"
                               >
-                                Link
+                                {isExpanded ? '▲ Weniger' : '▼ Details'}
                               </button>
-                            </div>
+                              {isExpanded && (
+                                <div className="p-3 bg-green-50 text-xs space-y-2 border-t border-green-200">
+                                  {/* Nährwerte Tabelle */}
+                                  <table className="w-full">
+                                    <tbody>
+                                      {recipe.score && (
+                                        <tr>
+                                          <td className="text-slate-600">Score:</td>
+                                          <td className="text-right font-semibold">{recipe.score}/100</td>
+                                        </tr>
+                                      )}
+                                      {recipe.calories && (
+                                        <tr>
+                                          <td className="text-slate-600">Kalorien:</td>
+                                          <td className="text-right font-semibold">{recipe.calories} kcal</td>
+                                        </tr>
+                                      )}
+                                      {recipe.protein && (
+                                        <tr>
+                                          <td className="text-slate-600">Protein:</td>
+                                          <td className="text-right font-semibold">{recipe.protein}g</td>
+                                        </tr>
+                                      )}
+                                      {recipe.carbs && (
+                                        <tr>
+                                          <td className="text-slate-600">Carbs (netto):</td>
+                                          <td className="text-right font-semibold">{recipe.carbs}g</td>
+                                        </tr>
+                                      )}
+                                    </tbody>
+                                  </table>
+                                  {/* Visuelle Bars */}
+                                  {recipe.score && (
+                                    <div>
+                                      <div className="text-xs text-slate-600 mb-1">Qualität</div>
+                                      <div className="w-full bg-slate-200 rounded-full h-2">
+                                        <div 
+                                          className={`h-2 rounded-full ${recipe.score >= 90 ? 'bg-green-500' : recipe.score >= 80 ? 'bg-yellow-500' : 'bg-orange-500'}`}
+                                          style={{width: `${recipe.score}%`}}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  {recipe.protein && (
+                                    <div>
+                                      <div className="text-xs text-slate-600 mb-1">Protein</div>
+                                      <div className="w-full bg-slate-200 rounded-full h-2">
+                                        <div 
+                                          className="bg-green-500 h-2 rounded-full"
+                                          style={{width: `${Math.min((recipe.protein / 50) * 100, 100)}%`}}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              <div className="border-t border-green-200 px-3 py-2 flex gap-2">
+                                <button
+                                  onClick={() => shareRecipe(recipe)}
+                                  className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs py-1.5 rounded font-medium transition"
+                                >
+                                  Teilen
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    const url = `${window.location.origin}${window.location.pathname}#section-${recipe.startLine}`;
+                                    copyToClipboard(url);
+                                  }}
+                                  className="px-3 bg-green-100 hover:bg-green-200 text-green-700 text-xs py-1.5 rounded font-medium transition"
+                                >
+                                  Link
+                                </button>
+                              </div>
+                            </>
                           )}
                         </div>
                       );
