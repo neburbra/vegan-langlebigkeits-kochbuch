@@ -501,13 +501,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 <div>
                                   <div className="flex justify-between mb-1">
                                     <span className="text-slate-700 font-medium">🩸 Blutzucker (GI/GL)</span>
-                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.bloodSugar}/{recipe.scoreBreakdown.bloodSugarMax}</span>
+                                    <span className="font-bold">{recipe.scoreBreakdown.bloodSugar}/{recipe.scoreBreakdown.bloodSugarMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all shadow-sm"
+                                      className={`h-3 rounded-full transition-all shadow-sm ${
+                                        (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.9 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.75 ? 'bg-gradient-to-r from-lime-500 to-lime-600' :
+                                        (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.6 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                        (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.4 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        'bg-gradient-to-r from-red-500 to-red-600'
+                                      }`}
                                       style={{width: `${(recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) * 100}%`}}
                                     />
+                                  </div>
+                                  <div className="text-xs mt-0.5 text-slate-600">
+                                    {(recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.9 ? '✓ Exzellent' :
+                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.75 ? '✓ Sehr gut' :
+                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.6 ? '○ Gut' :
+                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.4 ? '○ OK' :
+                                     '⚠ Verbesserungswürdig'}
                                   </div>
                                 </div>
                               )}
@@ -516,13 +529,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 <div>
                                   <div className="flex justify-between mb-1">
                                     <span className="text-slate-700 font-medium">🔥 Kaloriendichte</span>
-                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.calorieDensity}/{recipe.scoreBreakdown.calorieDensityMax}</span>
+                                    <span className="font-bold">{recipe.scoreBreakdown.calorieDensity}/{recipe.scoreBreakdown.calorieDensityMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-gradient-to-r from-orange-500 to-orange-600 h-3 rounded-full transition-all shadow-sm"
+                                      className={`h-3 rounded-full transition-all shadow-sm ${
+                                        (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.9 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.75 ? 'bg-gradient-to-r from-lime-500 to-lime-600' :
+                                        (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.6 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                        (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.4 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        'bg-gradient-to-r from-red-500 to-red-600'
+                                      }`}
                                       style={{width: `${(recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) * 100}%`}}
                                     />
+                                  </div>
+                                  <div className="text-xs mt-0.5 text-slate-600">
+                                    {(recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.9 ? '✓ Exzellent - sehr sättigend' :
+                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.75 ? '✓ Sehr gut' :
+                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.6 ? '○ Gut' :
+                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.4 ? '○ OK' :
+                                     '⚠ Verbesserungswürdig'}
                                   </div>
                                 </div>
                               )}
@@ -531,13 +557,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 <div>
                                   <div className="flex justify-between mb-1">
                                     <span className="text-slate-700 font-medium">💪 Protein</span>
-                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.protein}/{recipe.scoreBreakdown.proteinMax}</span>
+                                    <span className="font-bold">{recipe.scoreBreakdown.protein}/{recipe.scoreBreakdown.proteinMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all shadow-sm"
+                                      className={`h-3 rounded-full transition-all shadow-sm ${
+                                        (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.9 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.75 ? 'bg-gradient-to-r from-lime-500 to-lime-600' :
+                                        (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.6 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                        (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.4 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        'bg-gradient-to-r from-red-500 to-red-600'
+                                      }`}
                                       style={{width: `${(recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) * 100}%`}}
                                     />
+                                  </div>
+                                  <div className="text-xs mt-0.5 text-slate-600">
+                                    {(recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.9 ? '✓ Exzellent - proteinreich' :
+                                     (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.75 ? '✓ Sehr gut' :
+                                     (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.6 ? '○ Gut' :
+                                     (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.4 ? '○ OK' :
+                                     '⚠ Verbesserungswürdig'}
                                   </div>
                                 </div>
                               )}
@@ -546,13 +585,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 <div>
                                   <div className="flex justify-between mb-1">
                                     <span className="text-slate-700 font-medium">🌟 Nährstoffdichte</span>
-                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.nutrientDensity}/{recipe.scoreBreakdown.nutrientDensityMax}</span>
+                                    <span className="font-bold">{recipe.scoreBreakdown.nutrientDensity}/{recipe.scoreBreakdown.nutrientDensityMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-gradient-to-r from-teal-500 to-teal-600 h-3 rounded-full transition-all shadow-sm"
+                                      className={`h-3 rounded-full transition-all shadow-sm ${
+                                        (recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) >= 0.9 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        (recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) >= 0.75 ? 'bg-gradient-to-r from-lime-500 to-lime-600' :
+                                        (recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) >= 0.6 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                        (recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) >= 0.4 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        'bg-gradient-to-r from-red-500 to-red-600'
+                                      }`}
                                       style={{width: `${(recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) * 100}%`}}
                                     />
+                                  </div>
+                                  <div className="text-xs mt-0.5 text-slate-600">
+                                    {(recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) >= 0.9 ? '✓ Exzellent - nährstoffreich' :
+                                     (recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) >= 0.75 ? '✓ Sehr gut' :
+                                     (recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) >= 0.6 ? '○ Gut' :
+                                     (recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) >= 0.4 ? '○ OK' :
+                                     '⚠ Verbesserungswürdig'}
                                   </div>
                                 </div>
                               )}
@@ -561,13 +613,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 <div>
                                   <div className="flex justify-between mb-1">
                                     <span className="text-slate-700 font-medium">🌾 Ballaststoffe</span>
-                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.fiber}/{recipe.scoreBreakdown.fiberMax}</span>
+                                    <span className="font-bold">{recipe.scoreBreakdown.fiber}/{recipe.scoreBreakdown.fiberMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-gradient-to-r from-amber-500 to-amber-600 h-3 rounded-full transition-all shadow-sm"
+                                      className={`h-3 rounded-full transition-all shadow-sm ${
+                                        (recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) >= 0.9 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        (recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) >= 0.75 ? 'bg-gradient-to-r from-lime-500 to-lime-600' :
+                                        (recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) >= 0.6 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                        (recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) >= 0.4 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        'bg-gradient-to-r from-red-500 to-red-600'
+                                      }`}
                                       style={{width: `${(recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) * 100}%`}}
                                     />
+                                  </div>
+                                  <div className="text-xs mt-0.5 text-slate-600">
+                                    {(recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) >= 0.9 ? '✓ Exzellent - ballaststoffreich' :
+                                     (recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) >= 0.75 ? '✓ Sehr gut' :
+                                     (recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) >= 0.6 ? '○ Gut' :
+                                     (recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) >= 0.4 ? '○ OK' :
+                                     '⚠ Verbesserungswürdig'}
                                   </div>
                                 </div>
                               )}
@@ -576,13 +641,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 <div>
                                   <div className="flex justify-between mb-1">
                                     <span className="text-slate-700 font-medium">🥗 Verarbeitungsgrad</span>
-                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.processing}/{recipe.scoreBreakdown.processingMax}</span>
+                                    <span className="font-bold">{recipe.scoreBreakdown.processing}/{recipe.scoreBreakdown.processingMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-3 rounded-full transition-all shadow-sm"
+                                      className={`h-3 rounded-full transition-all shadow-sm ${
+                                        (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.9 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.75 ? 'bg-gradient-to-r from-lime-500 to-lime-600' :
+                                        (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.6 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                        (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.4 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        'bg-gradient-to-r from-red-500 to-red-600'
+                                      }`}
                                       style={{width: `${(recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) * 100}%`}}
                                     />
+                                  </div>
+                                  <div className="text-xs mt-0.5 text-slate-600">
+                                    {(recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.9 ? '✓ Exzellent - minimal verarbeitet' :
+                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.75 ? '✓ Sehr gut' :
+                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.6 ? '○ Gut' :
+                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.4 ? '○ OK' :
+                                     '⚠ Verbesserungswürdig'}
                                   </div>
                                 </div>
                               )}
@@ -591,13 +669,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 <div>
                                   <div className="flex justify-between mb-1">
                                     <span className="text-slate-700 font-medium">🛡️ Anti-inflammatorisch</span>
-                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.antiInflammatory}/{recipe.scoreBreakdown.antiInflammatoryMax}</span>
+                                    <span className="font-bold">{recipe.scoreBreakdown.antiInflammatory}/{recipe.scoreBreakdown.antiInflammatoryMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-gradient-to-r from-rose-500 to-rose-600 h-3 rounded-full transition-all shadow-sm"
+                                      className={`h-3 rounded-full transition-all shadow-sm ${
+                                        (recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) >= 0.9 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        (recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) >= 0.75 ? 'bg-gradient-to-r from-lime-500 to-lime-600' :
+                                        (recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) >= 0.6 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                        (recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) >= 0.4 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        'bg-gradient-to-r from-red-500 to-red-600'
+                                      }`}
                                       style={{width: `${(recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) * 100}%`}}
                                     />
+                                  </div>
+                                  <div className="text-xs mt-0.5 text-slate-600">
+                                    {(recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) >= 0.9 ? '✓ Exzellent' :
+                                     (recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) >= 0.75 ? '✓ Sehr gut' :
+                                     (recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) >= 0.6 ? '○ Gut' :
+                                     (recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) >= 0.4 ? '○ OK' :
+                                     '⚠ Verbesserungswürdig'}
                                   </div>
                                 </div>
                               )}
@@ -606,13 +697,26 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 <div>
                                   <div className="flex justify-between mb-1">
                                     <span className="text-slate-700 font-medium">♻️ Nachhaltigkeit</span>
-                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.sustainability}/{recipe.scoreBreakdown.sustainabilityMax}</span>
+                                    <span className="font-bold">{recipe.scoreBreakdown.sustainability}/{recipe.scoreBreakdown.sustainabilityMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-3 rounded-full transition-all shadow-sm"
+                                      className={`h-3 rounded-full transition-all shadow-sm ${
+                                        (recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) >= 0.9 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                        (recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) >= 0.75 ? 'bg-gradient-to-r from-lime-500 to-lime-600' :
+                                        (recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) >= 0.6 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                        (recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) >= 0.4 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                                        'bg-gradient-to-r from-red-500 to-red-600'
+                                      }`}
                                       style={{width: `${(recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) * 100}%`}}
                                     />
+                                  </div>
+                                  <div className="text-xs mt-0.5 text-slate-600">
+                                    {(recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) >= 0.9 ? '✓ Exzellent - sehr nachhaltig' :
+                                     (recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) >= 0.75 ? '✓ Sehr gut' :
+                                     (recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) >= 0.6 ? '○ Gut' :
+                                     (recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) >= 0.4 ? '○ OK' :
+                                     '⚠ Verbesserungswürdig'}
                                   </div>
                                 </div>
                               )}
@@ -640,10 +744,18 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                               <div>
                                 <div className="flex justify-between mb-0.5">
                                   <span className="text-slate-600">🩸 Blutzucker</span>
-                                  <span className="font-semibold text-green-700">{recipe.scoreBreakdown.bloodSugar}/{recipe.scoreBreakdown.bloodSugarMax}</span>
+                                  <span className="font-semibold">{recipe.scoreBreakdown.bloodSugar}/{recipe.scoreBreakdown.bloodSugarMax}</span>
                                 </div>
                                 <div className="w-full bg-slate-200 rounded-full h-2">
-                                  <div className="bg-blue-500 h-2 rounded-full" style={{width: `${(recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) * 100}%`}} />
+                                  <div 
+                                    className={`h-2 rounded-full ${
+                                      (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.9 ? 'bg-green-500' :
+                                      (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.75 ? 'bg-lime-500' :
+                                      (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.6 ? 'bg-yellow-500' :
+                                      (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.4 ? 'bg-orange-500' : 'bg-red-500'
+                                    }`}
+                                    style={{width: `${(recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) * 100}%`}} 
+                                  />
                                 </div>
                               </div>
                             )}
@@ -652,10 +764,18 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                               <div>
                                 <div className="flex justify-between mb-0.5">
                                   <span className="text-slate-600">💪 Protein</span>
-                                  <span className="font-semibold text-green-700">{recipe.scoreBreakdown.protein}/{recipe.scoreBreakdown.proteinMax}</span>
+                                  <span className="font-semibold">{recipe.scoreBreakdown.protein}/{recipe.scoreBreakdown.proteinMax}</span>
                                 </div>
                                 <div className="w-full bg-slate-200 rounded-full h-2">
-                                  <div className="bg-purple-500 h-2 rounded-full" style={{width: `${(recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) * 100}%`}} />
+                                  <div 
+                                    className={`h-2 rounded-full ${
+                                      (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.9 ? 'bg-green-500' :
+                                      (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.75 ? 'bg-lime-500' :
+                                      (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.6 ? 'bg-yellow-500' :
+                                      (recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) >= 0.4 ? 'bg-orange-500' : 'bg-red-500'
+                                    }`}
+                                    style={{width: `${(recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) * 100}%`}} 
+                                  />
                                 </div>
                               </div>
                             )}
@@ -664,10 +784,18 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                               <div>
                                 <div className="flex justify-between mb-0.5">
                                   <span className="text-slate-600">🔥 Kalorien</span>
-                                  <span className="font-semibold text-green-700">{recipe.scoreBreakdown.calorieDensity}/{recipe.scoreBreakdown.calorieDensityMax}</span>
+                                  <span className="font-semibold">{recipe.scoreBreakdown.calorieDensity}/{recipe.scoreBreakdown.calorieDensityMax}</span>
                                 </div>
                                 <div className="w-full bg-slate-200 rounded-full h-2">
-                                  <div className="bg-orange-500 h-2 rounded-full" style={{width: `${(recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) * 100}%`}} />
+                                  <div 
+                                    className={`h-2 rounded-full ${
+                                      (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.9 ? 'bg-green-500' :
+                                      (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.75 ? 'bg-lime-500' :
+                                      (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.6 ? 'bg-yellow-500' :
+                                      (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.4 ? 'bg-orange-500' : 'bg-red-500'
+                                    }`}
+                                    style={{width: `${(recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) * 100}%`}} 
+                                  />
                                 </div>
                               </div>
                             )}
