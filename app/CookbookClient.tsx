@@ -526,13 +526,13 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                 ) : (
                   filteredRecipes.map((recipe, idx) => (
                     <div key={idx} id={`recipe-${idx}`} className="bg-white rounded-xl shadow-lg p-6">
-                      {/* Recipe Header mit Score-Visualisierung */}
-                      <div className="mb-4 pb-4 border-b-2 border-green-200">
-                        <h2 className="text-2xl font-bold text-green-800 mb-3">{recipe.title}</h2>
+                      {/* Recipe Header mit Score-Visualisierung - KOMPAKT auf Mobile */}
+                      <div className="mb-3 sm:mb-4 pb-3 sm:pb-4 border-b-2 border-green-200">
+                        <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-2 sm:mb-3">{recipe.title}</h2>
                         
-                        {/* Score Breakdown Visualisierung */}
+                        {/* Score Breakdown - NUR auf Desktop sichtbar */}
                         {recipe.scoreBreakdown && recipe.score && (
-                          <div className="bg-green-50 rounded-lg p-4">
+                          <div className="hidden sm:block bg-green-50 rounded-lg p-4">
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-lg font-bold text-green-700">
                                 Gesamt-Score: {recipe.score}/100
@@ -672,47 +672,59 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                           </div>
                         )}
                         
-                        {/* Quick Stats */}
-                        <div className="flex flex-wrap gap-2 mt-3">
+                        {/* Mobile: NUR Score-Zahl + Quick Stats */}
+                        <div className="sm:hidden bg-green-50 rounded-lg p-3 mb-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-base font-bold text-green-700">
+                              Score: {recipe.score}/100
+                            </span>
+                            <span className={`px-3 py-1 rounded-lg font-bold text-white text-sm ${
+                              recipe.score >= 90 ? 'bg-green-500' :
+                              recipe.score >= 80 ? 'bg-yellow-500' : 'bg-orange-500'
+                            }`}>
+                              {recipe.score >= 90 ? 'Exzellent' : recipe.score >= 80 ? 'Sehr gut' : 'Gut'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Quick Stats - größer auf Mobile */}
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
                           {recipe.calories && (
-                            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                            <span className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm font-medium">
                               {recipe.calories} kcal
                             </span>
                           )}
                           {recipe.protein && (
-                            <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                            <span className="px-2 sm:px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs sm:text-sm font-medium">
                               {recipe.protein}g Protein
                             </span>
                           )}
                           {recipe.carbs !== undefined && (
-                            <span className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
-                              {recipe.carbs}g Netto-Carbs
-                            </span>
-                          )}
-                          {recipe.fiber && (
-                            <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
-                              {recipe.fiber}g Ballaststoffe
+                            <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs sm:text-sm font-medium">
+                              {recipe.carbs}g Carbs
                             </span>
                           )}
                         </div>
                         
                         <button
                           onClick={() => shareRecipe(recipe)}
-                          className="mt-3 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium"
+                          className="mt-2 sm:mt-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs sm:text-sm font-medium"
                         >
                           Teilen
                         </button>
                       </div>
                       
-                      {/* Recipe Content */}
-                      <div className="prose prose-slate max-w-none">
+                      {/* Recipe Content - größerer Text auf Mobile */}
+                      <div className="prose prose-sm sm:prose prose-slate max-w-none">
                         <ReactMarkdown 
                           remarkPlugins={[remarkGfm]}
                           rehypePlugins={[rehypeRaw]}
                           components={{
-                            h2: ({node, ...props}) => <h2 className="text-xl font-bold text-green-700 mt-4 mb-2" {...props} />,
-                            h3: ({node, ...props}) => <h3 className="text-lg font-semibold text-green-600 mt-3 mb-2" {...props} />,
-                            table: ({node, ...props}) => <div className="overflow-x-auto"><table {...props} /></div>,
+                            h2: ({node, ...props}) => <h2 className="text-base sm:text-xl font-bold text-green-700 mt-3 sm:mt-4 mb-2" {...props} />,
+                            h3: ({node, ...props}) => <h3 className="text-sm sm:text-lg font-semibold text-green-600 mt-2 sm:mt-3 mb-1 sm:mb-2" {...props} />,
+                            p: ({node, ...props}) => <p className="text-sm sm:text-base leading-relaxed mb-2 sm:mb-3" {...props} />,
+                            li: ({node, ...props}) => <li className="text-sm sm:text-base mb-1" {...props} />,
+                            table: ({node, ...props}) => <div className="overflow-x-auto text-xs sm:text-sm"><table {...props} /></div>,
                           }}
                         >
                           {recipe.content}
