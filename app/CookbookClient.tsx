@@ -265,20 +265,20 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
-        <header className="text-center mb-6 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-2xl shadow-xl p-6 text-white sticky top-0 z-50">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-2">
+        {/* Header - kompakter auf Mobile */}
+        <header className="text-center mb-4 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 text-white sticky top-0 z-50">
+          <h1 className="text-xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">
             Veganes Langlebigkeits-Kochbuch
           </h1>
-          <p className="text-base sm:text-lg mb-4 text-green-100">
+          <p className="text-sm sm:text-base md:text-lg mb-2 sm:mb-4 text-green-100">
             108 wissenschaftlich fundierte Rezepte
           </p>
           
-          {/* Toggle */}
-          <div className="flex justify-center gap-3 mb-4">
+          {/* Toggle - kompakter auf Mobile */}
+          <div className="flex justify-center gap-2 sm:gap-3 mb-2 sm:mb-4">
             <button
               onClick={() => setShowOnlyRecipes(true)}
-              className={`px-6 py-2 rounded-lg font-semibold transition ${
+              className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition ${
                 showOnlyRecipes
                   ? 'bg-white text-green-700 shadow-lg'
                   : 'bg-green-700 bg-opacity-50 text-white'
@@ -288,7 +288,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
             </button>
             <button
               onClick={() => setShowOnlyRecipes(false)}
-              className={`px-6 py-2 rounded-lg font-semibold transition ${
+              className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition ${
                 !showOnlyRecipes
                   ? 'bg-white text-green-700 shadow-lg'
                   : 'bg-green-700 bg-opacity-50 text-white'
@@ -300,19 +300,23 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
 
           {showOnlyRecipes && (
             <>
-              {/* Suchfeld */}
-              <div className="max-w-2xl mx-auto mb-4">
+              {/* Suchfeld - kompakter auf Mobile */}
+              <div className="max-w-2xl mx-auto mb-2 sm:mb-4">
                 <input
                   type="text"
-                  placeholder="Rezepte durchsuchen..."
+                  placeholder="Suche..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-5 py-3 text-slate-800 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300"
+                  className="w-full px-3 sm:px-5 py-2 sm:py-3 text-sm sm:text-base text-slate-800 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300"
                 />
               </div>
 
-              {/* Score-Range Filter */}
-              <div className="max-w-4xl mx-auto mb-4 bg-green-700 bg-opacity-30 rounded-xl p-4">
+              {/* Score-Range Filter - versteckbar auf Mobile */}
+              <details className="max-w-4xl mx-auto mb-2 sm:mb-4 bg-green-700 bg-opacity-30 rounded-xl">
+                <summary className="px-3 py-2 text-sm sm:text-base font-medium text-green-100 cursor-pointer hover:bg-green-700 hover:bg-opacity-20 rounded-xl">
+                  Score-Filter (aktuell: {minScore}-{maxScore})
+                </summary>
+              <div className="p-3 sm:p-4">
                 <div className="text-sm font-medium mb-3 text-green-100">
                   Qualitäts-Score: {minScore} - {maxScore} Punkte
                 </div>
@@ -347,18 +351,20 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                   </button>
                 </div>
               </div>
+              </details>
 
-              {/* Kategorien */}
-              <div className="max-w-4xl mx-auto mb-4 bg-green-700 bg-opacity-30 rounded-xl p-4">
-                <div className="text-sm font-medium mb-3 text-green-100">
+              {/* Kategorien - versteckbar auf Mobile */}
+              <details open className="max-w-4xl mx-auto mb-2 sm:mb-4 bg-green-700 bg-opacity-30 rounded-xl">
+                <summary className="px-3 py-2 text-sm sm:text-base font-medium text-green-100 cursor-pointer hover:bg-green-700 hover:bg-opacity-20 rounded-xl">
                   Kategorien {selectedCategories.length > 0 && `(${selectedCategories.length})`}
-                </div>
-                <div className="flex flex-wrap gap-2 justify-center">
+                </summary>
+              <div className="p-3 sm:p-4">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
                   {categories.map(cat => (
                     <button
                       key={cat}
                       onClick={() => toggleCategory(cat)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                      className={`px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
                         selectedCategories.includes(cat)
                           ? 'bg-white text-green-700 ring-2 ring-yellow-300'
                           : 'bg-green-600 text-white hover:bg-green-500'
@@ -369,14 +375,15 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                   ))}
                 </div>
               </div>
+              </details>
 
-              {/* Diet Filter */}
-              <div className="flex flex-wrap gap-2 justify-center mb-3">
+              {/* Diet Filter - kompakter auf Mobile */}
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center mb-2 sm:mb-3">
                 {['lowcarb', 'highprotein', 'lowcal'].map(filter => (
                   <button
                     key={filter}
                     onClick={() => toggleDietFilter(filter)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
                       dietFilters.includes(filter)
                         ? 'bg-yellow-400 text-slate-800 ring-2 ring-yellow-300'
                         : 'bg-white text-slate-700 hover:bg-green-50'
@@ -397,49 +404,81 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                       setDietFilters([]);
                       setSearchTerm('');
                     }}
-                    className="px-4 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600"
+                    className="px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium bg-red-500 text-white hover:bg-red-600"
                   >
-                    Zurücksetzen
+                    Reset
                   </button>
                 )}
               </div>
 
-              <div className="text-green-100 text-sm">
+              <div className="text-green-100 text-xs sm:text-sm mt-2">
                 {filteredRecipes.length} von {recipes.length} Rezepten
               </div>
             </>
           )}
 
-          <div className="flex flex-wrap justify-center gap-3 mt-4">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-2 sm:mt-4">
             <a 
               href="/Veganes_Langlebigkeits_Kochbuch_KOMPLETT.pdf" 
-              className="px-6 py-2 rounded-lg text-sm font-semibold bg-white text-green-700 hover:bg-green-50 shadow-lg"
+              className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-green-700 hover:bg-green-50 shadow-lg"
               download
             >
-              PDF Download
+              PDF
             </a>
-            <button
-              onClick={() => setShowToc(!showToc)}
-              className="px-6 py-2 rounded-lg text-sm font-semibold bg-green-700 bg-opacity-50 text-white hover:bg-green-700 shadow-lg"
-            >
-              {showToc ? 'Menü ausblenden' : 'Menü anzeigen'}
-            </button>
+            {showOnlyRecipes && (
+              <button
+                onClick={() => setShowToc(!showToc)}
+                className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-green-700 bg-opacity-50 text-white hover:bg-green-700 shadow-lg"
+              >
+                {showToc ? '✕ Menü' : '☰ Menü'}
+              </button>
+            )}
           </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
+          {/* Sidebar - als Overlay auf Mobile */}
           {showToc && showOnlyRecipes && (
-            <aside className="lg:col-span-1">
-              <div className="lg:sticky lg:top-32 bg-white rounded-xl shadow-lg p-4 max-h-[calc(100vh-10rem)] overflow-y-auto">
-                <h2 className="text-lg font-bold text-green-800 mb-3 pb-3 border-b-2 border-green-200 sticky top-0 bg-white">
-                  Rezepte ({filteredRecipes.length})
-                </h2>
+            <>
+              {/* Mobile Overlay Backdrop */}
+              <div 
+                className={`fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden ${showToc ? 'block' : 'hidden'}`}
+                onClick={() => setShowToc(false)}
+              />
+              
+              <aside className={`
+                lg:col-span-1 
+                fixed lg:relative 
+                inset-y-0 left-0 
+                w-64 lg:w-auto 
+                z-50 lg:z-auto
+                transform lg:transform-none
+                transition-transform duration-300
+                ${showToc ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+              `}>
+                <div className="h-full lg:sticky lg:top-32 bg-white rounded-r-xl lg:rounded-xl shadow-2xl lg:shadow-lg p-4 overflow-y-auto">
+                  <div className="flex justify-between items-center mb-3 pb-3 border-b-2 border-green-200 sticky top-0 bg-white">
+                    <h2 className="text-lg font-bold text-green-800">
+                      Rezepte ({filteredRecipes.length})
+                    </h2>
+                    <button 
+                      onClick={() => setShowToc(false)}
+                      className="lg:hidden text-slate-500 hover:text-slate-700 text-2xl"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 <nav className="space-y-2">
                   {filteredRecipes.map((recipe, idx) => (
-                    <div key={idx} className="border border-green-200 rounded-lg hover:border-green-400 transition bg-white">
+                    <div key={idx} className="border border-green-200 rounded-lg hover:border-green-400 transition bg-white mb-2">
                       <button
-                        onClick={() => scrollToRecipe(recipe)}
+                        onClick={() => {
+                          scrollToRecipe(recipe);
+                          // Auf Mobile Menü schließen nach Klick
+                          if (window.innerWidth < 1024) {
+                            setShowToc(false);
+                          }
+                        }}
                         className="block w-full text-left p-3 hover:bg-green-50 rounded-t-lg"
                       >
                         <div className="font-semibold text-green-700 text-sm">
@@ -472,6 +511,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                 </nav>
               </div>
             </aside>
+            </>
           )}
 
           {/* Content */}
