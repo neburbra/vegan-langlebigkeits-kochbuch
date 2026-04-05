@@ -17,14 +17,22 @@ interface CookbookClientProps {
 }
 
 interface ScoreBreakdown {
-  calorieScore?: number;
-  proteinScore?: number;
-  carbScore?: number;
-  fiberScore?: number;
-  nutrientScore?: number;
-  processScore?: number;
-  sustainScore?: number;
-  diabetesScore?: number;
+  bloodSugar?: number;
+  bloodSugarMax?: number;
+  calorieDensity?: number;
+  calorieDensityMax?: number;
+  protein?: number;
+  proteinMax?: number;
+  nutrientDensity?: number;
+  nutrientDensityMax?: number;
+  fiber?: number;
+  fiberMax?: number;
+  processing?: number;
+  processingMax?: number;
+  antiInflammatory?: number;
+  antiInflammatoryMax?: number;
+  sustainability?: number;
+  sustainabilityMax?: number;
   total?: number;
 }
 
@@ -45,7 +53,6 @@ interface Recipe {
 
 export default function CookbookClient({ content, sections }: CookbookClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
   const [showToc, setShowToc] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [minScore, setMinScore] = useState<number>(0);
@@ -117,54 +124,73 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
       } else if (currentRecipe) {
         currentRecipe.content += line + '\n';
         
-        // Score-Breakdown extrahieren
-        const calorieMatch = line.match(/Kaloriendichte:\s*\*\*(\d+)\/15\*\*/);
-        if (calorieMatch) currentRecipe.scoreBreakdown!.calorieScore = parseInt(calorieMatch[1]);
+        // Score-Breakdown extrahieren - EXAKTES Format aus Markdown
+        let match;
         
-        const proteinMatch = line.match(/Proteingehalt:\s*\*\*(\d+)\/15\*\*/);
-        if (proteinMatch) currentRecipe.scoreBreakdown!.proteinScore = parseInt(proteinMatch[1]);
-        
-        const carbMatch = line.match(/Kohlenhydrate & GI\/GL:\s*\*\*(\d+)\/15\*\*/);
-        if (carbMatch) currentRecipe.scoreBreakdown!.carbScore = parseInt(carbMatch[1]);
-        
-        const fiberMatch = line.match(/Ballaststoffe:\s*\*\*(\d+)\/10\*\*/);
-        if (fiberMatch) currentRecipe.scoreBreakdown!.fiberScore = parseInt(fiberMatch[1]);
-        
-        const nutrientMatch = line.match(/Nährstoffdichte:\s*\*\*(\d+)\/15\*\*/);
-        if (nutrientMatch) currentRecipe.scoreBreakdown!.nutrientScore = parseInt(nutrientMatch[1]);
-        
-        const processMatch = line.match(/Verarbeitungsgrad:\s*\*\*(\d+)\/10\*\*/);
-        if (processMatch) currentRecipe.scoreBreakdown!.processScore = parseInt(processMatch[1]);
-        
-        const sustainMatch = line.match(/Nachhaltigkeit:\s*\*\*(\d+)\/10\*\*/);
-        if (sustainMatch) currentRecipe.scoreBreakdown!.sustainScore = parseInt(sustainMatch[1]);
-        
-        const diabetesMatch = line.match(/Diabetesfreundlichkeit:\s*\*\*(\d+)\/10\*\*/);
-        if (diabetesMatch) currentRecipe.scoreBreakdown!.diabetesScore = parseInt(diabetesMatch[1]);
-        
-        const totalMatch = line.match(/\*\*Gesamt:\s*(\d+)\/100\*\*/);
-        if (totalMatch) {
-          currentRecipe.score = parseInt(totalMatch[1]);
-          currentRecipe.scoreBreakdown!.total = parseInt(totalMatch[1]);
+        // Listenformat: "- Blutzucker (GI/GL): 21/22.5"
+        if ((match = line.match(/^-\s*Blutzucker.*?(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/))) {
+          currentRecipe.scoreBreakdown!.bloodSugar = parseFloat(match[1]);
+          currentRecipe.scoreBreakdown!.bloodSugarMax = parseFloat(match[2]);
         }
         
-        const calMatch = line.match(/Kalorien\s*\|\s*(\d+)\s*kcal/);
-        if (calMatch) currentRecipe.calories = parseInt(calMatch[1]);
+        if ((match = line.match(/^-\s*Kaloriendichte.*?(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/))) {
+          currentRecipe.scoreBreakdown!.calorieDensity = parseFloat(match[1]);
+          currentRecipe.scoreBreakdown!.calorieDensityMax = parseFloat(match[2]);
+        }
         
-        const proteinValueMatch = line.match(/Protein\s*\|\s*(\d+)g/);
-        if (proteinValueMatch) {
-          currentRecipe.protein = parseInt(proteinValueMatch[1]);
+        if ((match = line.match(/^-\s*Protein:\s*(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/))) {
+          currentRecipe.scoreBreakdown!.protein = parseFloat(match[1]);
+          currentRecipe.scoreBreakdown!.proteinMax = parseFloat(match[2]);
+        }
+        
+        if ((match = line.match(/^-\s*Nährstoffdichte.*?(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/))) {
+          currentRecipe.scoreBreakdown!.nutrientDensity = parseFloat(match[1]);
+          currentRecipe.scoreBreakdown!.nutrientDensityMax = parseFloat(match[2]);
+        }
+        
+        if ((match = line.match(/^-\s*Ballaststoffe:\s*(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/))) {
+          currentRecipe.scoreBreakdown!.fiber = parseFloat(match[1]);
+          currentRecipe.scoreBreakdown!.fiberMax = parseFloat(match[2]);
+        }
+        
+        if ((match = line.match(/^-\s*Verarbeitungsgrad.*?(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/))) {
+          currentRecipe.scoreBreakdown!.processing = parseFloat(match[1]);
+          currentRecipe.scoreBreakdown!.processingMax = parseFloat(match[2]);
+        }
+        
+        if ((match = line.match(/^-\s*Anti-inflammatorisch.*?(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/))) {
+          currentRecipe.scoreBreakdown!.antiInflammatory = parseFloat(match[1]);
+          currentRecipe.scoreBreakdown!.antiInflammatoryMax = parseFloat(match[2]);
+        }
+        
+        if ((match = line.match(/^-\s*Nachhaltigkeit.*?(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)/))) {
+          currentRecipe.scoreBreakdown!.sustainability = parseFloat(match[1]);
+          currentRecipe.scoreBreakdown!.sustainabilityMax = parseFloat(match[2]);
+        }
+        
+        if ((match = line.match(/\*\*Gesamt:\s*(\d+)\/100\*\*/))) {
+          currentRecipe.score = parseInt(match[1]);
+          currentRecipe.scoreBreakdown!.total = parseInt(match[1]);
+        }
+        
+        // Nährwerte extrahieren
+        if ((match = line.match(/Kalorien\s*\|\s*(\d+)\s*kcal/))) {
+          currentRecipe.calories = parseInt(match[1]);
+        }
+        
+        if ((match = line.match(/Protein\s*\|\s*(\d+)g/))) {
+          currentRecipe.protein = parseInt(match[1]);
           currentRecipe.isHighProtein = currentRecipe.protein >= 20;
         }
         
-        const netCarbMatch = line.match(/Netto:\s*(\d+)g\)/);
-        if (netCarbMatch) {
-          currentRecipe.carbs = parseInt(netCarbMatch[1]);
+        if ((match = line.match(/Netto:\s*(\d+)g\)/))) {
+          currentRecipe.carbs = parseInt(match[1]);
           currentRecipe.isLowCarb = currentRecipe.carbs <= 30;
         }
         
-        const fiberValueMatch = line.match(/Ballaststoffe\s*\|\s*(\d+)g/);
-        if (fiberValueMatch) currentRecipe.fiber = parseInt(fiberValueMatch[1]);
+        if ((match = line.match(/Ballaststoffe\s*\|\s*(\d+)g/))) {
+          currentRecipe.fiber = parseInt(match[1]);
+        }
       }
     });
     
@@ -172,6 +198,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
     console.log('EXTRAHIERT:', recipeList.length, 'Rezepte');
     if (recipeList.length > 0) {
       console.log('Erste 3:', recipeList.slice(0, 3).map(r => r.title));
+      console.log('Score-Beispiel (Rezept 1):', recipeList[0].scoreBreakdown);
     }
     return recipeList;
   }, [content]);
@@ -181,15 +208,13 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
     return Array.from(cats).sort();
   }, [recipes]);
 
-  // Filtering Logic
-  useEffect(() => {
+  // Filtering mit useMemo statt useEffect
+  const filteredRecipes = useMemo(() => {
     if (!showOnlyRecipes) {
-      setFilteredRecipes([]);
-      return;
+      return [];
     }
 
     let matching = recipes;
-    console.log('Filtering:', { totalRecipes: recipes.length, searchTerm, selectedCategories, minScore, maxScore });
     
     // Suchbegriff
     if (searchTerm.trim()) {
@@ -198,13 +223,11 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
         recipe.title.toLowerCase().includes(searchLower) ||
         recipe.content.toLowerCase().includes(searchLower)
       );
-      console.log('Nach Suche:', matching.length);
     }
     
     // Kategorien
     if (selectedCategories.length > 0) {
       matching = matching.filter(r => selectedCategories.includes(r.category));
-      console.log('Nach Kategorien:', matching.length);
     }
     
     // Score-Range
@@ -212,7 +235,6 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
       const score = r.score || 0;
       return score >= minScore && score <= maxScore;
     });
-    console.log('Nach Score-Filter:', matching.length);
     
     // Diet-Filter
     if (dietFilters.includes('lowcarb')) {
@@ -225,8 +247,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
       matching = matching.filter(r => (r.calories || 0) <= 400);
     }
     
-    console.log('FINAL gefilterte Rezepte:', matching.length);
-    setFilteredRecipes(matching);
+    return matching;
   }, [searchTerm, selectedCategories, minScore, maxScore, dietFilters, showOnlyRecipes, recipes]);
 
   const scrollToRecipe = (recipe: Recipe) => {
@@ -265,162 +286,33 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header - kompakter auf Mobile */}
-        <header className="text-center mb-4 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 text-white sticky top-0 z-50">
-          <h1 className="text-xl sm:text-3xl md:text-4xl font-bold mb-1 sm:mb-2">
-            Veganes Langlebigkeits-Kochbuch
+        {/* Header - MINIMAL auf Mobile */}
+        <header className="text-center mb-2 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 rounded-lg shadow-xl p-2 text-white sticky top-0 z-50">
+          <h1 className="text-base sm:text-3xl md:text-4xl font-bold mb-1">
+            Veganes Kochbuch
           </h1>
-          <p className="text-sm sm:text-base md:text-lg mb-2 sm:mb-4 text-green-100">
-            108 wissenschaftlich fundierte Rezepte
-          </p>
           
-          {/* Toggle - kompakter auf Mobile */}
-          <div className="flex justify-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+          {/* Toggle - inline auf Mobile */}
+          <div className="flex justify-center gap-1 sm:gap-3 mb-1">
             <button
               onClick={() => setShowOnlyRecipes(true)}
-              className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition ${
-                showOnlyRecipes
-                  ? 'bg-white text-green-700 shadow-lg'
-                  : 'bg-green-700 bg-opacity-50 text-white'
+              className={`px-2 sm:px-6 py-1 sm:py-2 rounded text-xs sm:text-base font-semibold ${
+                showOnlyRecipes ? 'bg-white text-green-700' : 'bg-green-700 bg-opacity-50 text-white'
               }`}
             >
-              Rezepte ({recipes.length})
+              Rezepte
             </button>
             <button
               onClick={() => setShowOnlyRecipes(false)}
-              className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-sm sm:text-base font-semibold transition ${
-                !showOnlyRecipes
-                  ? 'bg-white text-green-700 shadow-lg'
-                  : 'bg-green-700 bg-opacity-50 text-white'
+              className={`px-2 sm:px-6 py-1 sm:py-2 rounded text-xs sm:text-base font-semibold ${
+                !showOnlyRecipes ? 'bg-white text-green-700' : 'bg-green-700 bg-opacity-50 text-white'
               }`}
             >
-              Wissenschaft
+              Wissen
             </button>
-          </div>
-
-          {showOnlyRecipes && (
-            <>
-              {/* Suchfeld - kompakter auf Mobile */}
-              <div className="max-w-2xl mx-auto mb-2 sm:mb-4">
-                <input
-                  type="text"
-                  placeholder="Suche..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 sm:px-5 py-2 sm:py-3 text-sm sm:text-base text-slate-800 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-green-300"
-                />
-              </div>
-
-              {/* Score-Range Filter - versteckbar auf Mobile */}
-              <details className="max-w-4xl mx-auto mb-2 sm:mb-4 bg-green-700 bg-opacity-30 rounded-xl">
-                <summary className="px-3 py-2 text-sm sm:text-base font-medium text-green-100 cursor-pointer hover:bg-green-700 hover:bg-opacity-20 rounded-xl">
-                  Score-Filter (aktuell: {minScore}-{maxScore})
-                </summary>
-              <div className="p-3 sm:p-4">
-                <div className="text-sm font-medium mb-3 text-green-100">
-                  Qualitäts-Score: {minScore} - {maxScore} Punkte
-                </div>
-                <div className="flex gap-4 items-center justify-center">
-                  <div className="flex-1 max-w-md">
-                    <label className="text-xs text-green-100 mb-1 block">Min: {minScore}</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={minScore}
-                      onChange={(e) => setMinScore(parseInt(e.target.value))}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="flex-1 max-w-md">
-                    <label className="text-xs text-green-100 mb-1 block">Max: {maxScore}</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={maxScore}
-                      onChange={(e) => setMaxScore(parseInt(e.target.value))}
-                      className="w-full"
-                    />
-                  </div>
-                  <button
-                    onClick={() => { setMinScore(90); setMaxScore(100); }}
-                    className="px-3 py-2 bg-yellow-400 text-slate-800 rounded-lg text-xs font-medium hover:bg-yellow-300"
-                  >
-                    Top (90+)
-                  </button>
-                </div>
-              </div>
-              </details>
-
-              {/* Kategorien - versteckbar auf Mobile */}
-              <details open className="max-w-4xl mx-auto mb-2 sm:mb-4 bg-green-700 bg-opacity-30 rounded-xl">
-                <summary className="px-3 py-2 text-sm sm:text-base font-medium text-green-100 cursor-pointer hover:bg-green-700 hover:bg-opacity-20 rounded-xl">
-                  Kategorien {selectedCategories.length > 0 && `(${selectedCategories.length})`}
-                </summary>
-              <div className="p-3 sm:p-4">
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center">
-                  {categories.map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => toggleCategory(cat)}
-                      className={`px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
-                        selectedCategories.includes(cat)
-                          ? 'bg-white text-green-700 ring-2 ring-yellow-300'
-                          : 'bg-green-600 text-white hover:bg-green-500'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              </details>
-
-              {/* Diet Filter - kompakter auf Mobile */}
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center mb-2 sm:mb-3">
-                {['lowcarb', 'highprotein', 'lowcal'].map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => toggleDietFilter(filter)}
-                    className={`px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition ${
-                      dietFilters.includes(filter)
-                        ? 'bg-yellow-400 text-slate-800 ring-2 ring-yellow-300'
-                        : 'bg-white text-slate-700 hover:bg-green-50'
-                    }`}
-                  >
-                    {filter === 'lowcarb' && 'Low-Carb'}
-                    {filter === 'highprotein' && 'High-Protein'}
-                    {filter === 'lowcal' && 'Low-Cal'}
-                  </button>
-                ))}
-
-                {(selectedCategories.length > 0 || minScore > 0 || maxScore < 100 || dietFilters.length > 0 || searchTerm) && (
-                  <button
-                    onClick={() => {
-                      setSelectedCategories([]);
-                      setMinScore(0);
-                      setMaxScore(100);
-                      setDietFilters([]);
-                      setSearchTerm('');
-                    }}
-                    className="px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium bg-red-500 text-white hover:bg-red-600"
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-
-              <div className="text-green-100 text-xs sm:text-sm mt-2">
-                {filteredRecipes.length} von {recipes.length} Rezepten
-              </div>
-            </>
-          )}
-
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-2 sm:mt-4">
             <a 
               href="/Veganes_Langlebigkeits_Kochbuch_KOMPLETT.pdf" 
-              className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-white text-green-700 hover:bg-green-50 shadow-lg"
+              className="px-2 sm:px-6 py-1 sm:py-2 rounded text-xs sm:text-sm font-semibold bg-white text-green-700"
               download
             >
               PDF
@@ -428,12 +320,68 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
             {showOnlyRecipes && (
               <button
                 onClick={() => setShowToc(!showToc)}
-                className="px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-green-700 bg-opacity-50 text-white hover:bg-green-700 shadow-lg"
+                className="px-2 sm:px-6 py-1 sm:py-2 rounded text-xs sm:text-sm font-semibold bg-green-700 bg-opacity-50 text-white"
               >
-                {showToc ? '✕ Menü' : '☰ Menü'}
+                {showToc ? '✕' : '☰'}
               </button>
             )}
           </div>
+
+          {showOnlyRecipes && (
+            <>
+              {/* Suchfeld - direkt unter Header */}
+              <div className="mb-1">
+                <input
+                  type="text"
+                  placeholder="Suche..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-2 py-1 text-xs sm:text-base text-slate-800 bg-white rounded focus:outline-none focus:ring-1 focus:ring-green-300"
+                />
+              </div>
+
+              {/* ALLE Filter in EINEM versteckten Bereich */}
+              <details className="text-xs sm:text-sm">
+                <summary className="cursor-pointer text-white hover:text-green-100 py-1">
+                  ⚙️ Filter ({filteredRecipes.length}/{recipes.length})
+                </summary>
+                <div className="mt-2 space-y-2 bg-green-700 bg-opacity-30 rounded p-2">
+                  {/* Score */}
+                  <div className="text-xs">
+                    <div className="text-white mb-1">Score: {minScore}-{maxScore}</div>
+                    <div className="flex gap-2 items-center">
+                      <input type="range" min="0" max="100" value={minScore} onChange={(e) => setMinScore(parseInt(e.target.value))} className="flex-1" />
+                      <input type="range" min="0" max="100" value={maxScore} onChange={(e) => setMaxScore(parseInt(e.target.value))} className="flex-1" />
+                      <button onClick={() => { setMinScore(90); setMaxScore(100); }} className="px-2 py-1 bg-yellow-400 text-slate-800 rounded text-xs">90+</button>
+                    </div>
+                  </div>
+
+                  {/* Kategorien */}
+                  <div className="flex flex-wrap gap-1">{categories.map(cat => (
+                    <button key={cat} onClick={() => toggleCategory(cat)} className={`px-2 py-1 rounded text-xs ${selectedCategories.includes(cat) ? 'bg-white text-green-700' : 'bg-green-600 text-white'}`}>
+                      {cat}
+                    </button>
+                  ))}</div>
+
+                  {/* Diet */}
+                  <div className="flex flex-wrap gap-1">
+                    {['lowcarb', 'highprotein', 'lowcal'].map(filter => (
+                      <button key={filter} onClick={() => toggleDietFilter(filter)} className={`px-2 py-1 rounded text-xs ${dietFilters.includes(filter) ? 'bg-yellow-400 text-slate-800' : 'bg-white text-slate-700'}`}>
+                        {filter === 'lowcarb' && 'Low-Carb'}
+                        {filter === 'highprotein' && 'Protein'}
+                        {filter === 'lowcal' && 'Low-Cal'}
+                      </button>
+                    ))}
+                    {(selectedCategories.length > 0 || minScore > 0 || maxScore < 100 || dietFilters.length > 0 || searchTerm) && (
+                      <button onClick={() => { setSelectedCategories([]); setMinScore(0); setMaxScore(100); setDietFilters([]); setSearchTerm(''); }} className="px-2 py-1 rounded text-xs bg-red-500 text-white">
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </details>
+            </>
+          )}
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -530,9 +478,9 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                       <div className="mb-3 sm:mb-4 pb-3 sm:pb-4 border-b-2 border-green-200">
                         <h2 className="text-xl sm:text-2xl font-bold text-green-800 mb-2 sm:mb-3">{recipe.title}</h2>
                         
-                        {/* Score Breakdown - NUR auf Desktop sichtbar */}
+                        {/* Score Breakdown mit visuellen Balken */}
                         {recipe.scoreBreakdown && recipe.score && (
-                          <div className="hidden sm:block bg-green-50 rounded-lg p-4">
+                          <div className="bg-green-50 rounded-lg p-4 mb-4">
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-lg font-bold text-green-700">
                                 Gesamt-Score: {recipe.score}/100
@@ -542,128 +490,128 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                 recipe.score >= 80 ? 'bg-yellow-500' :
                                 recipe.score >= 70 ? 'bg-orange-500' : 'bg-red-500'
                               }`}>
-                                {recipe.score >= 90 ? 'Exzellent' :
-                                 recipe.score >= 80 ? 'Sehr gut' :
-                                 recipe.score >= 70 ? 'Gut' : 'OK'}
+                                {recipe.score >= 90 ? '⭐⭐⭐⭐⭐' :
+                                 recipe.score >= 80 ? '⭐⭐⭐⭐' :
+                                 recipe.score >= 70 ? '⭐⭐⭐' : '⭐⭐'}
                               </span>
                             </div>
                             
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                              {recipe.scoreBreakdown.calorieScore !== undefined && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                              {recipe.scoreBreakdown.bloodSugar !== undefined && recipe.scoreBreakdown.bloodSugarMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-600">Kaloriendichte</span>
-                                    <span className="font-semibold">{recipe.scoreBreakdown.calorieScore}/15</span>
+                                    <span className="text-slate-700 font-medium">🩸 Blutzucker (GI/GL)</span>
+                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.bloodSugar}/{recipe.scoreBreakdown.bloodSugarMax}</span>
                                   </div>
-                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-green-500 h-2 rounded-full"
-                                      style={{width: `${(recipe.scoreBreakdown.calorieScore / 15) * 100}%`}}
+                                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all shadow-sm"
+                                      style={{width: `${(recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) * 100}%`}}
                                     />
                                   </div>
                                 </div>
                               )}
                               
-                              {recipe.scoreBreakdown.proteinScore !== undefined && (
+                              {recipe.scoreBreakdown.calorieDensity !== undefined && recipe.scoreBreakdown.calorieDensityMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-600">Proteingehalt</span>
-                                    <span className="font-semibold">{recipe.scoreBreakdown.proteinScore}/15</span>
+                                    <span className="text-slate-700 font-medium">🔥 Kaloriendichte</span>
+                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.calorieDensity}/{recipe.scoreBreakdown.calorieDensityMax}</span>
                                   </div>
-                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-purple-500 h-2 rounded-full"
-                                      style={{width: `${(recipe.scoreBreakdown.proteinScore / 15) * 100}%`}}
+                                      className="bg-gradient-to-r from-orange-500 to-orange-600 h-3 rounded-full transition-all shadow-sm"
+                                      style={{width: `${(recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) * 100}%`}}
                                     />
                                   </div>
                                 </div>
                               )}
                               
-                              {recipe.scoreBreakdown.carbScore !== undefined && (
+                              {recipe.scoreBreakdown.protein !== undefined && recipe.scoreBreakdown.proteinMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-600">Kohlenhydrate</span>
-                                    <span className="font-semibold">{recipe.scoreBreakdown.carbScore}/15</span>
+                                    <span className="text-slate-700 font-medium">💪 Protein</span>
+                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.protein}/{recipe.scoreBreakdown.proteinMax}</span>
                                   </div>
-                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-blue-500 h-2 rounded-full"
-                                      style={{width: `${(recipe.scoreBreakdown.carbScore / 15) * 100}%`}}
+                                      className="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all shadow-sm"
+                                      style={{width: `${(recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) * 100}%`}}
                                     />
                                   </div>
                                 </div>
                               )}
                               
-                              {recipe.scoreBreakdown.fiberScore !== undefined && (
+                              {recipe.scoreBreakdown.nutrientDensity !== undefined && recipe.scoreBreakdown.nutrientDensityMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-600">Ballaststoffe</span>
-                                    <span className="font-semibold">{recipe.scoreBreakdown.fiberScore}/10</span>
+                                    <span className="text-slate-700 font-medium">🌟 Nährstoffdichte</span>
+                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.nutrientDensity}/{recipe.scoreBreakdown.nutrientDensityMax}</span>
                                   </div>
-                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-amber-500 h-2 rounded-full"
-                                      style={{width: `${(recipe.scoreBreakdown.fiberScore / 10) * 100}%`}}
+                                      className="bg-gradient-to-r from-teal-500 to-teal-600 h-3 rounded-full transition-all shadow-sm"
+                                      style={{width: `${(recipe.scoreBreakdown.nutrientDensity / recipe.scoreBreakdown.nutrientDensityMax) * 100}%`}}
                                     />
                                   </div>
                                 </div>
                               )}
                               
-                              {recipe.scoreBreakdown.nutrientScore !== undefined && (
+                              {recipe.scoreBreakdown.fiber !== undefined && recipe.scoreBreakdown.fiberMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-600">Nährstoffdichte</span>
-                                    <span className="font-semibold">{recipe.scoreBreakdown.nutrientScore}/15</span>
+                                    <span className="text-slate-700 font-medium">🌾 Ballaststoffe</span>
+                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.fiber}/{recipe.scoreBreakdown.fiberMax}</span>
                                   </div>
-                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-teal-500 h-2 rounded-full"
-                                      style={{width: `${(recipe.scoreBreakdown.nutrientScore / 15) * 100}%`}}
+                                      className="bg-gradient-to-r from-amber-500 to-amber-600 h-3 rounded-full transition-all shadow-sm"
+                                      style={{width: `${(recipe.scoreBreakdown.fiber / recipe.scoreBreakdown.fiberMax) * 100}%`}}
                                     />
                                   </div>
                                 </div>
                               )}
                               
-                              {recipe.scoreBreakdown.processScore !== undefined && (
+                              {recipe.scoreBreakdown.processing !== undefined && recipe.scoreBreakdown.processingMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-600">Verarbeitung</span>
-                                    <span className="font-semibold">{recipe.scoreBreakdown.processScore}/10</span>
+                                    <span className="text-slate-700 font-medium">🥗 Verarbeitungsgrad</span>
+                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.processing}/{recipe.scoreBreakdown.processingMax}</span>
                                   </div>
-                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-indigo-500 h-2 rounded-full"
-                                      style={{width: `${(recipe.scoreBreakdown.processScore / 10) * 100}%`}}
+                                      className="bg-gradient-to-r from-indigo-500 to-indigo-600 h-3 rounded-full transition-all shadow-sm"
+                                      style={{width: `${(recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) * 100}%`}}
                                     />
                                   </div>
                                 </div>
                               )}
                               
-                              {recipe.scoreBreakdown.sustainScore !== undefined && (
+                              {recipe.scoreBreakdown.antiInflammatory !== undefined && recipe.scoreBreakdown.antiInflammatoryMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-600">Nachhaltigkeit</span>
-                                    <span className="font-semibold">{recipe.scoreBreakdown.sustainScore}/10</span>
+                                    <span className="text-slate-700 font-medium">🛡️ Anti-inflammatorisch</span>
+                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.antiInflammatory}/{recipe.scoreBreakdown.antiInflammatoryMax}</span>
                                   </div>
-                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-emerald-500 h-2 rounded-full"
-                                      style={{width: `${(recipe.scoreBreakdown.sustainScore / 10) * 100}%`}}
+                                      className="bg-gradient-to-r from-rose-500 to-rose-600 h-3 rounded-full transition-all shadow-sm"
+                                      style={{width: `${(recipe.scoreBreakdown.antiInflammatory / recipe.scoreBreakdown.antiInflammatoryMax) * 100}%`}}
                                     />
                                   </div>
                                 </div>
                               )}
                               
-                              {recipe.scoreBreakdown.diabetesScore !== undefined && (
+                              {recipe.scoreBreakdown.sustainability !== undefined && recipe.scoreBreakdown.sustainabilityMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-600">Diabetesfreundlich</span>
-                                    <span className="font-semibold">{recipe.scoreBreakdown.diabetesScore}/10</span>
+                                    <span className="text-slate-700 font-medium">♻️ Nachhaltigkeit</span>
+                                    <span className="font-bold text-green-700">{recipe.scoreBreakdown.sustainability}/{recipe.scoreBreakdown.sustainabilityMax}</span>
                                   </div>
-                                  <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="w-full bg-slate-200 rounded-full h-3">
                                     <div 
-                                      className="bg-rose-500 h-2 rounded-full"
-                                      style={{width: `${(recipe.scoreBreakdown.diabetesScore / 10) * 100}%`}}
+                                      className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-3 rounded-full transition-all shadow-sm"
+                                      style={{width: `${(recipe.scoreBreakdown.sustainability / recipe.scoreBreakdown.sustainabilityMax) * 100}%`}}
                                     />
                                   </div>
                                 </div>
@@ -672,9 +620,9 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                           </div>
                         )}
                         
-                        {/* Mobile: NUR Score-Zahl + Quick Stats */}
+                        {/* Mobile: Score kompakt mit TOP 3 wichtigsten Werten */}
                         <div className="sm:hidden bg-green-50 rounded-lg p-3 mb-2">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between mb-2">
                             <span className="text-base font-bold text-green-700">
                               Score: {recipe.score}/100
                             </span>
@@ -682,8 +630,47 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                               (recipe.score || 0) >= 90 ? 'bg-green-500' :
                               (recipe.score || 0) >= 80 ? 'bg-yellow-500' : 'bg-orange-500'
                             }`}>
-                              {(recipe.score || 0) >= 90 ? 'Exzellent' : (recipe.score || 0) >= 80 ? 'Sehr gut' : 'Gut'}
+                              {(recipe.score || 0) >= 90 ? '⭐⭐⭐⭐⭐' : (recipe.score || 0) >= 80 ? '⭐⭐⭐⭐' : '⭐⭐⭐'}
                             </span>
+                          </div>
+                          
+                          {/* Nur die 3 wichtigsten auf Mobile */}
+                          <div className="space-y-1.5 text-xs">
+                            {recipe.scoreBreakdown?.bloodSugar !== undefined && recipe.scoreBreakdown.bloodSugarMax && (
+                              <div>
+                                <div className="flex justify-between mb-0.5">
+                                  <span className="text-slate-600">🩸 Blutzucker</span>
+                                  <span className="font-semibold text-green-700">{recipe.scoreBreakdown.bloodSugar}/{recipe.scoreBreakdown.bloodSugarMax}</span>
+                                </div>
+                                <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="bg-blue-500 h-2 rounded-full" style={{width: `${(recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) * 100}%`}} />
+                                </div>
+                              </div>
+                            )}
+                            
+                            {recipe.scoreBreakdown?.protein !== undefined && recipe.scoreBreakdown.proteinMax && (
+                              <div>
+                                <div className="flex justify-between mb-0.5">
+                                  <span className="text-slate-600">💪 Protein</span>
+                                  <span className="font-semibold text-green-700">{recipe.scoreBreakdown.protein}/{recipe.scoreBreakdown.proteinMax}</span>
+                                </div>
+                                <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="bg-purple-500 h-2 rounded-full" style={{width: `${(recipe.scoreBreakdown.protein / recipe.scoreBreakdown.proteinMax) * 100}%`}} />
+                                </div>
+                              </div>
+                            )}
+                            
+                            {recipe.scoreBreakdown?.calorieDensity !== undefined && recipe.scoreBreakdown.calorieDensityMax && (
+                              <div>
+                                <div className="flex justify-between mb-0.5">
+                                  <span className="text-slate-600">🔥 Kalorien</span>
+                                  <span className="font-semibold text-green-700">{recipe.scoreBreakdown.calorieDensity}/{recipe.scoreBreakdown.calorieDensityMax}</span>
+                                </div>
+                                <div className="w-full bg-slate-200 rounded-full h-2">
+                                  <div className="bg-orange-500 h-2 rounded-full" style={{width: `${(recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) * 100}%`}} />
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                         
