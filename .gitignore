@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+
+# Vercel
+.vercel
+
+# Environment
+.env
+.env*.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
