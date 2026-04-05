@@ -83,3 +83,26 @@ body {
   color: #166534;
   font-weight: 700;
 }
+
+/* Rezept-Spacing */
+.prose h2 + h3 {
+  margin-top: 1rem;
+}
+
+.prose ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Line-clamp für langes Text */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
