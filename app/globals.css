@@ -34,6 +34,12 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
+  display: table;
+  overflow-x: auto;
+}
+
+.prose thead {
+  background-color: #dcfce7;
 }
 
 .prose th {
@@ -49,8 +55,12 @@ body {
   border: 1px solid #d1d5db;
 }
 
-.prose tr:nth-child(even) {
+.prose tbody tr:nth-child(even) {
   background-color: #f9fafb;
+}
+
+.prose tbody tr:hover {
+  background-color: #f0fdf4;
 }
 
 .prose a {
