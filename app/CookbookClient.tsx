@@ -516,11 +516,11 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                     />
                                   </div>
                                   <div className="text-xs mt-0.5 text-slate-600">
-                                    {(recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.9 ? '✓ Exzellent' :
-                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.75 ? '✓ Sehr gut' :
-                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.6 ? '○ Gut' :
-                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.4 ? '○ OK' :
-                                     '⚠ Verbesserungswürdig'}
+                                    {(recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.9 ? '✓ Exzellent - sehr niedriger GI' :
+                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.75 ? '✓ Sehr gut - niedriger GI' :
+                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.6 ? '○ Gut - moderater GI' :
+                                     (recipe.scoreBreakdown.bloodSugar / recipe.scoreBreakdown.bloodSugarMax) >= 0.4 ? '○ OK - etwas hoher GI' :
+                                     '⚠ Hoher GI - mit Protein kombinieren'}
                                   </div>
                                 </div>
                               )}
@@ -544,11 +544,11 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                     />
                                   </div>
                                   <div className="text-xs mt-0.5 text-slate-600">
-                                    {(recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.9 ? '✓ Exzellent - sehr sättigend' :
-                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.75 ? '✓ Sehr gut' :
-                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.6 ? '○ Gut' :
-                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.4 ? '○ OK' :
-                                     '⚠ Verbesserungswürdig'}
+                                    {(recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.9 ? '✓ Exzellent - sehr niedrig' :
+                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.75 ? '✓ Sehr gut - niedrig' :
+                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.6 ? '○ Gut - moderat' :
+                                     (recipe.scoreBreakdown.calorieDensity / recipe.scoreBreakdown.calorieDensityMax) >= 0.4 ? '○ OK - etwas hoch' :
+                                     '⚠ Hoch - Vorsicht bei Portionsgröße'}
                                   </div>
                                 </div>
                               )}
@@ -640,7 +640,7 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                               {recipe.scoreBreakdown.processing !== undefined && recipe.scoreBreakdown.processingMax && (
                                 <div>
                                   <div className="flex justify-between mb-1">
-                                    <span className="text-slate-700 font-medium">🥗 Verarbeitungsgrad</span>
+                                    <span className="text-slate-700 font-medium">🥗 Verarbeitung</span>
                                     <span className="font-bold">{recipe.scoreBreakdown.processing}/{recipe.scoreBreakdown.processingMax}</span>
                                   </div>
                                   <div className="w-full bg-slate-200 rounded-full h-3">
@@ -657,10 +657,10 @@ export default function CookbookClient({ content, sections }: CookbookClientProp
                                   </div>
                                   <div className="text-xs mt-0.5 text-slate-600">
                                     {(recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.9 ? '✓ Exzellent - minimal verarbeitet' :
-                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.75 ? '✓ Sehr gut' :
-                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.6 ? '○ Gut' :
-                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.4 ? '○ OK' :
-                                     '⚠ Verbesserungswürdig'}
+                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.75 ? '✓ Sehr gut - wenig verarbeitet' :
+                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.6 ? '○ Gut - moderat verarbeitet' :
+                                     (recipe.scoreBreakdown.processing / recipe.scoreBreakdown.processingMax) >= 0.4 ? '○ OK - etwas stark verarbeitet' :
+                                     '⚠ Stark verarbeitet'}
                                   </div>
                                 </div>
                               )}
